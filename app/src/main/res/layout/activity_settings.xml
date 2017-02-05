@@ -67,6 +67,7 @@
                     android:id="@+id/user_display_name"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
                     android:hint="@string/text_loading" />
 
                 <TextView

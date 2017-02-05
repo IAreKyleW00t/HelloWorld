@@ -64,8 +64,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            android:hint="@string/hint_name"
-            android:inputType="textPersonName" />
+            android:inputType="textPersonName"
+            android:hint="@string/hint_name" />
 
         <EditText
             android:id="@+id/input_email"
@@ -73,8 +73,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            android:hint="@string/hint_email"
-            android:inputType="textEmailAddress" />
+            android:inputType="textEmailAddress"
+            android:hint="@string/hint_email" />
 
         <EditText
             android:id="@+id/input_password"

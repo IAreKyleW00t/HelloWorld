@@ -48,6 +48,8 @@ import butterknife.OnClick;
 
 public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
     public static final String TAG = LoginActivity.class.getSimpleName();
+
+    // Request codes
     private static final int
             RC_GOOGLE_SIGNIN    = 42,
             RC_REGISTER         = 69;

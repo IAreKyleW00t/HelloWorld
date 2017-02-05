@@ -24,9 +24,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -43,6 +45,7 @@ public class SettingsActivity extends BaseActivity {
     public static final String TAG = SettingsActivity.class.getSimpleName();
 
     // Activity elements
+    @BindView(R.id.user_picture) ImageView _picture;
     @BindView(R.id.user_display_name) EditText _name;
     @BindView(R.id.user_email) TextView _email;
     @BindView(R.id.link_change_password) TextView _changePassword;
@@ -82,6 +85,12 @@ public class SettingsActivity extends BaseActivity {
                 .addOnSuccessListener(this, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                        // Load users profile picture
+                        Glide.with(SettingsActivity.this)
+                                .load(mUser.getPhotoUrl())
+                                .placeholder(R.drawable.default_user_picture)
+                                .into(_picture);
+
                         // Display the users information
                         _name.setText(mUser.getDisplayName());
                         _email.setText(mUser.getEmail());

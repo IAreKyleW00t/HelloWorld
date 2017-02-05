@@ -24,7 +24,7 @@
 
     <!-- API tokens -->
     <string name="token_google_client_id">XXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com</string>
-    
+
     <!-- Providers -->
     <string name="provider_firebase">Firebase</string>
     <string name="provider_google">Google</string>

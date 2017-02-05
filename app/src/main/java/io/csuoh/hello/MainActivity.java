@@ -28,6 +28,9 @@ import com.google.firebase.auth.FirebaseUser;
 import butterknife.ButterKnife;
 
 public class MainActivity extends BaseActivity {
+    public static final String TAG = MainActivity.class.getSimpleName();
+
+    // Menu items
     private static final int
             MENU_SETTINGS   = Menu.FIRST,
             MENU_SIGNOUT    = Menu.FIRST + 1;

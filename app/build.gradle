@@ -18,14 +18,13 @@ android {
         }
     }
 }
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.+', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.1.0'
-    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:25.1.+'
+    testCompile 'junit:junit:4.+'
 
     // ButterKnife
     compile 'com.jakewharton:butterknife:8.5.+'
@@ -40,6 +39,7 @@ dependencies {
     // Google libraries
     compile 'com.google.android.gms:play-services-auth:9.6.+'
     compile 'com.android.support:design:25.1.+'
+
 }
 
 // Google Services

@@ -43,12 +43,16 @@
     <string name="dialog_logout">Logging out</string>
     <string name="dialog_register">Creating account</string>
     <string name="dialog_save">Saving</string>
+    <string name="dialog_update">Updating</string>
+    <string name="dialog_change_password">Changing Password</string>
 
     <!-- Messages -->
     <string name="msg_reauthenticate">Please login to continue</string>
     <string name="msg_logout">You have been signed out</string>
-    <string name="msg_save">Settings saved</string>
+    <string name="msg_cancel">Action cancelled</string>
     <string name="msg_verify_email">A verification email has been sent</string>
+    <string name="msg_settings_save">Settings saved successfully</string>
+    <string name="msg_password_updated">Password updated successfully</string>
 
     <!-- Errors -->
     <string name="err_show">%1$s</string>
@@ -59,6 +63,9 @@
     <string name="err_bad_password">Your password must be at least 6 characters long</string>
     <string name="err_mismatch_passwords">Passwords do not match</string>
     <string name="err_empty_input">This field is required</string>
+    <string name="err_failed_settings_save">Failed to save settings. Please try again</string>
+    <string name="err_failed_reauth">Failed to re-authenticate account. Please try again</string>
+    <string name="err_failed_password_change">Failed to update password. Please try again</string>
 
     <!-- Forms -->
     <string name="hint_name">Name</string>

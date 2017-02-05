@@ -20,10 +20,7 @@
 <resources>
     <!-- Application -->
     <string name="app_name">HelloWorld</string>
-    <string name="app_firebase_id">helloworld-XXXXX.firebaseapp.com</string>
-
-    <!-- API tokens -->
-    <string name="token_google_client_id">XXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com</string>
+    <string name="app_firebase_id">helloworld-74ff4.firebaseapp.com</string>
 
     <!-- Providers -->
     <string name="provider_firebase">Firebase</string>

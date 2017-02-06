@@ -37,6 +37,7 @@
     <string name="title_main">@string/app_name</string>
     <string name="title_settings">Settings</string>
     <string name="title_change_password">Change password</string>
+    <string name="title_join">Join group</string>
 
     <!-- Dialogs -->
     <string name="dialog_load">Loading</string>
@@ -99,6 +100,7 @@
     <string name="text_name">Display name</string>
     <string name="text_email">Email</string>
     <string name="text_user_id">User ID</string>
+    <string name="text_user_picture">Profile picture</string>
     <string name="text_provider">Provider</string>
 
     <!-- Menus -->

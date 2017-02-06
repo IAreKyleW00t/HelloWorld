@@ -40,6 +40,7 @@ dependencies {
     // Firebase libraries
     compile 'com.google.firebase:firebase-auth:9.6.+'
     compile 'com.google.firebase:firebase-storage:9.6.+'
+    compile 'com.google.firebase:firebase-database:9.6.+'
 
     // Google libraries
     compile 'com.google.android.gms:play-services-auth:9.6.+'

@@ -26,6 +26,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends BaseActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
@@ -79,5 +80,10 @@ public class MainActivity extends BaseActivity {
             default: // Default to super
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @OnClick(R.id.fab_group_add)
+    public void onJoinGroup() {
+        startActivity(JoinActivity.createIntent(this));
     }
 }

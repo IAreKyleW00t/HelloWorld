@@ -325,7 +325,7 @@ public class SettingsActivity extends BaseActivity {
         // For simplicity, we make the filename the same as the users ID
         StorageReference storageReference = mStorage
                 .getReferenceFromUrl("gs://" + getString(R.string.app_firebase_bucket))
-                .child("avatars/" + mUser.getUid());
+                .child("user/" + mUser.getUid() + "/profilePicture");
 
         // Create a new task to upload the file
         UploadTask task = storageReference.putFile(file);

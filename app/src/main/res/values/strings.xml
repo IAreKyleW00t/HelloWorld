@@ -21,6 +21,7 @@
     <!-- Application -->
     <string name="app_name">HelloWorld</string>
     <string name="app_firebase_id">helloworld-74ff4.firebaseapp.com</string>
+    <string name="app_firebase_bucket">helloworld-74ff4.appspot.com</string>
 
     <!-- Providers -->
     <string name="provider_firebase">Firebase</string>
@@ -45,6 +46,7 @@
     <string name="dialog_save">Saving</string>
     <string name="dialog_update">Updating</string>
     <string name="dialog_change_password">Changing Password</string>
+    <string name="dialog_uploading">Uploading</string>
 
     <!-- Messages -->
     <string name="msg_reauthenticate">Please login to continue</string>
@@ -53,6 +55,7 @@
     <string name="msg_verify_email">A verification email has been sent</string>
     <string name="msg_settings_save">Settings saved successfully</string>
     <string name="msg_password_updated">Password updated successfully</string>
+    <string name="msg_picture_updated">Your profile picture has been updated successfully</string>
 
     <!-- Errors -->
     <string name="err_show">%1$s</string>
@@ -66,6 +69,8 @@
     <string name="err_failed_settings_save">Failed to save settings. Please try again</string>
     <string name="err_failed_reauth">Failed to re-authenticate account. Please try again</string>
     <string name="err_failed_password_change">Failed to update password. Please try again</string>
+    <string name="err_no_file">No file selected. Please try again</string>
+    <string name="err_failed_file_upload">Failed to upload file. Please try again</string>
 
     <!-- Forms -->
     <string name="hint_name">Name</string>

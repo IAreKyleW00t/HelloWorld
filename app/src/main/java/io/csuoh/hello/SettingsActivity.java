@@ -18,6 +18,7 @@ package io.csuoh.hello;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -30,6 +31,7 @@ import android.widget.TextView;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -39,6 +41,9 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -46,6 +51,10 @@ import butterknife.OnClick;
 
 public class SettingsActivity extends BaseActivity {
     public static final String TAG = SettingsActivity.class.getSimpleName();
+
+    // Request codes
+    private static final int
+            RC_OPEN_FILE    = 420;
 
     // Activity elements
     @BindView(R.id.user_picture) ImageView _picture;
@@ -57,6 +66,7 @@ public class SettingsActivity extends BaseActivity {
     @BindView(R.id.btn_save) Button _save;
 
     // Firebase
+    FirebaseStorage mStorage;
     FirebaseUser mUser;
 
     public static Intent createIntent(Context context) {
@@ -71,6 +81,9 @@ public class SettingsActivity extends BaseActivity {
         setContentView(R.layout.activity_settings);
         setTitle(R.string.title_settings);
         ButterKnife.bind(this);
+
+        // Save the current Firebase Storage reference
+        mStorage = FirebaseStorage.getInstance();
 
         // Save current user and display info in UI
         // It is not possible to be "logged out" at this point
@@ -92,6 +105,7 @@ public class SettingsActivity extends BaseActivity {
                         Glide.with(SettingsActivity.this)
                                 .load(mUser.getPhotoUrl())
                                 .placeholder(R.drawable.default_user_picture)
+                                .dontAnimate()
                                 .into(_picture);
 
                         // Display the users information
@@ -134,6 +148,27 @@ public class SettingsActivity extends BaseActivity {
                         hideProgressDialog();
                     }
                 });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case RC_OPEN_FILE: // Open file
+                if (resultCode == RESULT_OK) { // File selected
+                    firebaseUploadUserPhoto(data.getData());
+                }
+                break;
+            default: // Default to super
+                super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @OnClick(R.id.user_picture)
+    public void onChangeProfilePicture() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("image/*");
+        startActivityForResult(intent, RC_OPEN_FILE);
     }
 
     @OnClick(R.id.link_change_password)
@@ -281,7 +316,58 @@ public class SettingsActivity extends BaseActivity {
                 });
     }
 
+    private void firebaseUploadUserPhoto(final Uri file) {
+        // Display progress dialog and disable input
+        enableInput(false);
+        showProgressDialog(R.string.dialog_uploading);
+
+        // Create a reference to the file that will be stored
+        // For simplicity, we make the filename the same as the users ID
+        StorageReference storageReference = mStorage
+                .getReferenceFromUrl("gs://" + getString(R.string.app_firebase_bucket))
+                .child("avatars/" + mUser.getUid());
+
+        // Create a new task to upload the file
+        UploadTask task = storageReference.putFile(file);
+        task.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                // Update the users photo URL to the one that was uploaded
+                UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
+                        .setPhotoUri(taskSnapshot.getDownloadUrl())
+                        .build();
+                mUser.updateProfile(profile);
+
+                // Reload users profile picture from a local file so the change is instant
+                Glide.with(SettingsActivity.this)
+                        .load(file)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE) // Don't cache local file
+                        .placeholder(R.drawable.default_user_picture)
+                        .into(_picture);
+
+                // Automatically dismiss the progress dialog, enable input again, and tell
+                // the user their action was successful
+                enableInput(true);
+                hideProgressDialog();
+                showSnackbar(R.string.msg_picture_updated);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // Log error internally and display it to the user
+                Log.e(TAG, "putFile", e);
+                showSnackbar(R.string.err_failed_file_upload);
+
+                // Automatically dismiss the progress dialog, enable input again, and
+                // reload the users info
+                enableInput(true);
+                hideProgressDialog();
+            }
+        });
+    }
+
     private void enableInput(boolean enabled) {
+        _picture.setEnabled(enabled);
         _name.setEnabled(enabled);
         _changePassword.setEnabled(enabled);
         _save.setEnabled(enabled);

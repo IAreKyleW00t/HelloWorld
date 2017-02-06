@@ -43,6 +43,8 @@ public class BaseActivity extends AppCompatActivity {
                     .content(R.string.text_wait)
                     .progress(true, 0)
                     .build();
+        } else if (!_progress.isShowing()) {
+            _progress.setTitle(title);
         }
         _progress.show();
     }

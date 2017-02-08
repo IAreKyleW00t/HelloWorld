@@ -16,7 +16,6 @@
  */
 package io.csuoh.hello;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.MainThread;
 import android.support.annotation.StringRes;
@@ -28,7 +27,7 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 
 public class BaseActivity extends AppCompatActivity {
-    private MaterialDialog _progress;
+    private MaterialDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,55 +35,49 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     @MainThread
-    public void showProgressDialog(@StringRes int title) {
-        if (_progress == null) {
-            _progress = new MaterialDialog.Builder(this)
+    public final void showProgressDialog(@StringRes int title) {
+        if (mProgressDialog == null) {
+            mProgressDialog = new MaterialDialog.Builder(this)
                     .title(title)
                     .content(R.string.text_wait)
                     .progress(true, 0)
                     .build();
-        } else if (!_progress.isShowing()) {
-            _progress.setTitle(title);
+        } else if (!mProgressDialog.isShowing()) {
+            mProgressDialog.setTitle(title);
         }
-        _progress.show();
+        mProgressDialog.show();
     }
 
     @MainThread
-    public void hideProgressDialog() {
-        if (_progress != null && _progress.isShowing()) {
-            _progress.dismiss();
-        }
-    }
-
-    @MainThread
-    public void showToast(@StringRes int strResource) {
-        Context context = getApplicationContext();
-        if (context != null) {
-            Toast.makeText(context, getString(strResource), Toast.LENGTH_LONG).show();
+    public final void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
         }
     }
 
     @MainThread
-    public void showToast(@StringRes int strResource, Object... args) {
-        Context context = getApplicationContext();
-        if (context != null) {
-            Toast.makeText(context, getString(strResource, args), Toast.LENGTH_LONG).show();
-        }
+    public final void showToast(@StringRes int strResource) {
+        Toast.makeText(this, strResource, Toast.LENGTH_LONG).show();
     }
 
     @MainThread
-    public void showSnackbar(@StringRes int strResource) {
+    public final void showToast(@StringRes int strResource, Object... args) {
+        Toast.makeText(this, getString(strResource, args), Toast.LENGTH_LONG).show();
+    }
+
+    @MainThread
+    public final void showSnackbar(@StringRes int strResource) {
         View view = getCurrentFocus();
         if (view != null) {
-            Snackbar.make(view, getString(strResource), Snackbar.LENGTH_LONG).show();
+            Snackbar.make(getCurrentFocus(), strResource, Snackbar.LENGTH_LONG).show();
         }
     }
 
     @MainThread
-    public void showSnackbar(@StringRes int strResource, Object... args) {
+    public final void showSnackbar(@StringRes int strResource, Object... args) {
         View view = getCurrentFocus();
         if (view != null) {
-            Snackbar.make(view, getString(strResource, args), Snackbar.LENGTH_LONG).show();
+            Snackbar.make(getCurrentFocus(), getString(strResource, args), Snackbar.LENGTH_LONG).show();
         }
     }
 }

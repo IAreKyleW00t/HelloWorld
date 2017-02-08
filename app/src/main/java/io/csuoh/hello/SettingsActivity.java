@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -48,6 +49,7 @@ import com.google.firebase.storage.UploadTask;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.Optional;
 
 public class SettingsActivity extends BaseActivity {
     public static final String TAG = SettingsActivity.class.getSimpleName();
@@ -60,7 +62,7 @@ public class SettingsActivity extends BaseActivity {
     @BindView(R.id.user_picture) ImageView _picture;
     @BindView(R.id.user_display_name) EditText _name;
     @BindView(R.id.user_email) TextView _email;
-    @BindView(R.id.link_change_password) TextView _changePassword;
+    @Nullable @BindView(R.id.link_change_password) TextView _changePassword;
     @BindView(R.id.user_id) TextView _uid;
     @BindView(R.id.user_provider) TextView _provider;
     @BindView(R.id.btn_save) Button _save;
@@ -104,6 +106,7 @@ public class SettingsActivity extends BaseActivity {
                         // Load users profile picture
                         Glide.with(SettingsActivity.this)
                                 .load(mUser.getPhotoUrl())
+                                .centerCrop()
                                 .placeholder(R.drawable.default_user_picture)
                                 .dontAnimate()
                                 .into(_picture);
@@ -171,6 +174,7 @@ public class SettingsActivity extends BaseActivity {
         startActivityForResult(intent, RC_OPEN_FILE);
     }
 
+    @Optional
     @OnClick(R.id.link_change_password)
     public void onChangePassword() {
         // Disable input in the background
@@ -341,6 +345,7 @@ public class SettingsActivity extends BaseActivity {
                 // Reload users profile picture from a local file so the change is instant
                 Glide.with(SettingsActivity.this)
                         .load(file)
+                        .centerCrop()
                         .diskCacheStrategy(DiskCacheStrategy.NONE) // Don't cache local file
                         .placeholder(R.drawable.default_user_picture)
                         .into(_picture);
@@ -366,7 +371,7 @@ public class SettingsActivity extends BaseActivity {
         });
     }
 
-    private void enableInput(boolean enabled) {
+    public void enableInput(boolean enabled) {
         _picture.setEnabled(enabled);
         _name.setEnabled(enabled);
         _changePassword.setEnabled(enabled);

@@ -78,13 +78,13 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
         // Check if user is already logged in
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null && user.isEmailVerified()) { // Logged in w/ verified email
+        if (user != null && user.isEmailVerified()) { // Logged in w/ verified emailInput
             startActivity(MainActivity.createIntent(this));
             finish();
             return;
         }
 
-        // Configure Google Sign in to request user ID, email, etc.
+        // Configure Google Sign in to request user ID, emailInput, etc.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.token_google_client_id))
                 .requestEmail()
@@ -100,9 +100,9 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case RC_REGISTER: // User register
+            case RC_REGISTER: // DatabaseUser register
                 if (resultCode == RESULT_OK) { // Successful registration
-                    _email.setText(data.getStringExtra("firebase_email"));
+                    _email.setText(data.getStringExtra("firebase-email"));
                     _password.setText(null);
                     showSnackbar(R.string.msg_verify_email);
                 }
@@ -127,7 +127,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
 
     @OnClick(R.id.btn_login)
     public void onClickEmailSignIn() {
-        if (!validateForm()) return;
+        if (!validateInput()) return;
         firebaseAuthWithEmailAndPassword(_email.getText().toString(), _password.getText().toString());
     }
 
@@ -148,7 +148,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         enableInput(false);
         showProgressDialog(R.string.dialog_login);
 
-        // Attempt to sign in with email and password
+        // Attempt to sign in with emailInput and password
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
                     @Override
@@ -156,8 +156,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                         FirebaseUser user = authResult.getUser();
 
                         // Mover user to MainActivity if verified,
-                        // otherwise send another confirmation email
-                        // This shouldn't be needed for Google accounts, but just to be safe...
+                        // otherwise send another confirmation emailInput
                         if (user.isEmailVerified()) {
                             startActivity(MainActivity.createIntent(LoginActivity.this));
                             finish();
@@ -198,7 +197,8 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                         FirebaseUser user = authResult.getUser();
 
                         // Mover user to MainActivity if verified,
-                        // otherwise send another confirmation email
+                        // otherwise send another confirmation emailInput
+                        // This shouldn't be needed for Google accounts, but just to be safe...
                         if (user.isEmailVerified()) {
                             startActivity(MainActivity.createIntent(LoginActivity.this));
                             finish();
@@ -226,7 +226,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
                 });
     }
 
-    private boolean validateForm() {
+    public boolean validateInput() {
         // Clear old input errors
         _email.setError(null);
         _password.setError(null);
@@ -246,7 +246,7 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         return true;
     }
 
-    private void enableInput(boolean enabled) {
+    public void enableInput(boolean enabled) {
         _email.setEnabled(enabled);
         _password.setEnabled(enabled);
         _login.setEnabled(enabled);

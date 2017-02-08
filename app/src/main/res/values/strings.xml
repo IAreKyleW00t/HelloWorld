@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!--
    * Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
    *
@@ -16,10 +15,10 @@
    * You should have received a copy of the GNU General Public License
    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-
 <resources>
     <!-- Application -->
     <string name="app_name">HelloWorld</string>
+    <string name="app_version">0.10.0</string>
     <string name="app_firebase_id">helloworld-74ff4.firebaseapp.com</string>
     <string name="app_firebase_bucket">helloworld-74ff4.appspot.com</string>
 
@@ -59,6 +58,7 @@
     <string name="msg_picture_updated">Your profile picture has been updated successfully</string>
 
     <!-- Errors -->
+    <string name="error_register_failed">Failed to create account. Please try again</string>
     <string name="err_show">%1$s</string>
     <string name="err_unknown">Unknown error occurred</string>
     <string name="err_google_play">Google play service error</string>

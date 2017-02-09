@@ -21,6 +21,8 @@
     android:id="@+id/activity_register"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context="io.csuoh.hello.RegisterActivity">
 
     <LinearLayout
@@ -31,7 +33,7 @@
         android:paddingRight="24dp"
         android:paddingTop="56dp">
 
-        <!-- Disable autofocus -->
+        <!-- Dummy item to prevent autofocus -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -41,7 +43,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="144dp"
-            android:contentDescription="@string/app_name"
+            android:contentDescription="@string/desc_app_logo"
             android:src="@drawable/ic_smile" />
 
         <TextView
@@ -52,7 +54,7 @@
             android:text="@string/app_name"
             android:textAlignment="center"
             android:textSize="36sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/input_name"
@@ -60,8 +62,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            android:inputType="textPersonName"
-            android:hint="@string/hint_name" />
+            android:hint="@string/hint_name"
+            android:inputType="textPersonName" />
 
         <EditText
             android:id="@+id/input_email"
@@ -69,8 +71,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            android:inputType="textEmailAddress"
-            android:hint="@string/hint_email" />
+            android:hint="@string/hint_email"
+            android:inputType="textEmailAddress" />
 
         <EditText
             android:id="@+id/input_password"
@@ -79,18 +81,18 @@
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
             android:fontFamily="sans-serif"
-            android:inputType="textPassword"
-            android:hint="@string/hint_password" />
+            android:hint="@string/hint_password"
+            android:inputType="textPassword" />
 
         <EditText
-            android:id="@+id/input_confirm_password"
+            android:id="@+id/input_password_confirm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
             android:fontFamily="sans-serif"
-            android:inputType="textPassword"
-            android:hint="@string/hint_confirm_password" />
+            android:hint="@string/hint_password_confirm"
+            android:inputType="textPassword" />
 
         <Button
             android:id="@+id/button_register"
@@ -98,10 +100,10 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            android:text="@string/btn_register" />
+            android:text="@string/action_register" />
 
         <TextView
-            android:id="@+id/text_login"
+            android:id="@+id/link_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
@@ -111,4 +113,5 @@
             android:textSize="16sp" />
 
     </LinearLayout>
+
 </ScrollView>

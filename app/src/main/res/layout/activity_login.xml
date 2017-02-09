@@ -21,8 +21,10 @@
     android:id="@+id/activity_login"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context="io.csuoh.hello.LoginActivity">
-    
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,7 +33,7 @@
         android:paddingRight="24dp"
         android:paddingTop="56dp">
 
-        <!-- Disable autofocus -->
+        <!-- Dummy item to prevent autofocus -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -39,14 +41,12 @@
             android:focusableInTouchMode="true" />
 
         <ImageView
-            android:id="@+id/img_logo"
             android:layout_width="wrap_content"
             android:layout_height="144dp"
-            android:contentDescription="@string/app_name"
+            android:contentDescription="@string/desc_app_logo"
             android:src="@drawable/ic_smile" />
 
         <TextView
-            android:id="@+id/app_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
@@ -62,8 +62,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            android:inputType="textEmailAddress"
-            android:hint="@string/hint_email" />
+            android:hint="@string/hint_email"
+            android:inputType="textEmailAddress" />
 
         <EditText
             android:id="@+id/input_password"
@@ -72,24 +72,23 @@
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
             android:fontFamily="sans-serif"
-            android:inputType="textPassword"
-            android:hint="@string/hint_password" />
+            android:hint="@string/hint_password"
+            android:inputType="textPassword" />
 
         <Button
-            android:id="@+id/btn_login"
+            android:id="@+id/button_login_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            android:text="@string/btn_login" />
+            android:text="@string/action_login_email" />
 
         <com.google.android.gms.common.SignInButton
-            android:id="@+id/btn_login_google"
+            android:id="@+id/button_login_google"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:layout_marginTop="8dp">
-        </com.google.android.gms.common.SignInButton>
+            android:layout_marginTop="8dp" />
 
         <TextView
             android:id="@+id/link_register"
@@ -102,4 +101,5 @@
             android:textSize="16sp" />
 
     </LinearLayout>
+
 </ScrollView>

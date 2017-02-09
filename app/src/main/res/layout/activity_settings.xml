@@ -31,7 +31,7 @@
         android:paddingRight="24dp"
         android:paddingTop="16dp">
 
-        <!-- Disable autofocus -->
+        <!-- Dummy item to prevent autofocus -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -45,12 +45,12 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/user_picture"
+                android:id="@+id/image_user_picture"
                 android:layout_width="92dp"
                 android:layout_height="92dp"
                 android:layout_marginEnd="16dp"
-                android:src="@drawable/default_user_picture"
-                android:contentDescription="@string/text_user_picture"/>
+                android:contentDescription="@string/desc_profile_picture"
+                android:src="@drawable/default_user_picture"/>
 
             <LinearLayout
                 android:layout_width="fill_parent"
@@ -63,24 +63,25 @@
                     android:text="@string/text_name" />
 
                 <EditText
-                    android:id="@+id/user_display_name"
+                    android:id="@+id/input_user_name"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:hint="@string/text_loading" />
+                    android:hint="@string/loading"
+                    android:inputType="textPersonName" />
 
                 <TextView
-                    android:id="@+id/link_change_password"
+                    android:id="@+id/link_password_change"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:paddingStart="4dp"
                     android:paddingEnd="0dp"
-                    android:visibility="gone"
+                    android:paddingStart="4dp"
+                    android:text="@string/link_password_change"
                     android:textColor="@color/colorAccent"
-                    android:text="@string/link_change_password" />
+                    android:visibility="gone" />
 
             </LinearLayout>
+
         </LinearLayout>
 
         <TextView
@@ -90,16 +91,16 @@
             android:text="@string/text_email" />
 
         <TextView
-            android:id="@+id/user_email"
+            android:id="@+id/text_user_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:paddingTop="10dp"
-            android:paddingStart="4dp"
+            android:hint="@string/loading"
             android:paddingEnd="0dp"
-            android:textSize="18sp"
+            android:paddingStart="4dp"
+            android:paddingTop="10dp"
             android:textColor="#000"
-            android:hint="@string/text_loading" />
+            android:textSize="18sp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -108,16 +109,16 @@
             android:text="@string/text_user_id" />
 
         <TextView
-            android:id="@+id/user_id"
+            android:id="@+id/text_user_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:paddingTop="10dp"
-            android:paddingStart="4dp"
+            android:hint="@string/loading"
             android:paddingEnd="0dp"
-            android:textSize="18sp"
+            android:paddingStart="4dp"
+            android:paddingTop="10dp"
             android:textColor="#000"
-            android:hint="@string/text_loading"/>
+            android:textSize="18sp"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -126,16 +127,16 @@
             android:text="@string/text_provider"/>
 
         <TextView
-            android:id="@+id/user_provider"
+            android:id="@+id/text_user_provider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:paddingTop="10dp"
-            android:paddingStart="4dp"
+            android:hint="@string/loading"
             android:paddingEnd="0dp"
-            android:textSize="18sp"
+            android:paddingStart="4dp"
+            android:paddingTop="10dp"
             android:textColor="#000"
-            android:hint="@string/text_loading" />
+            android:textSize="18sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -149,12 +150,14 @@
                 android:layout_weight="1" />
 
             <Button
+                android:id="@+id/button_save"
                 style="@style/Widget.AppCompat.Button.Colored"
-                android:id="@+id/btn_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/btn_save" />
+                android:text="@string/action_save" />
 
         </LinearLayout>
+
     </LinearLayout>
+
 </ScrollView>

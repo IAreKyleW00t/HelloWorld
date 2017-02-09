@@ -31,9 +31,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
+
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,9 +50,9 @@ public class RegisterActivity extends BaseActivity {
     @BindView(R.id.input_name) EditText nameInput;
     @BindView(R.id.input_email) EditText emailInput;
     @BindView(R.id.input_password) EditText passwordInput;
-    @BindView(R.id.input_confirm_password) EditText confirmPasswordInput;
+    @BindView(R.id.input_password_confirm) EditText passwordConfirmButton;
     @BindView(R.id.button_register) Button registerButton;
-    @BindView(R.id.text_login) TextView loginText;
+    @BindView(R.id.link_login) TextView loginLink;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -71,6 +74,7 @@ public class RegisterActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+        setTitle(R.string.title_register);
         ButterKnife.bind(this);
 
         // Get the instances of all our Firebase objects
@@ -79,8 +83,6 @@ public class RegisterActivity extends BaseActivity {
         mDatabase = FirebaseDatabase.getInstance();
 
         // Initialize all of our Listeners
-        // We do this here becuase we are only creating one instance of each Listener when
-        // the Activity is created instead of each time the register button is clicked
         mUserCreationResultListener = new UserCreationResultListener();
         mStorageUriResultListener = new StorageUriResultListener();
         mUserProfileUpdateResultListener = new UserProfileUpdateResultListener();
@@ -95,20 +97,24 @@ public class RegisterActivity extends BaseActivity {
             return;
         }
 
-        // Display a progress dialog and disable input
-        showProgressDialog(R.string.dialog_register);
-        enableInput(false);
-
-        // Begin to go through the entire account creation process
-        // For better readability, this is broken into multiple Classes at the bottom of this file
-        FirebaseAuth.getInstance().createUserWithEmailAndPassword(emailInput.getText().toString(), passwordInput.getText().toString())
-                .addOnCompleteListener(this, mUserCreationResultListener);
+        // Create a new Firebase user with the given email and password
+        firebaseCreateUserWithEmailAndPassword(emailInput.getText().toString(), passwordInput.getText().toString());
     }
 
-    @OnClick(R.id.text_login)
+    @OnClick(R.id.link_login)
     public void onClickLogin() {
         setResult(RESULT_CANCELED);
         finish();
+    }
+
+    private void firebaseCreateUserWithEmailAndPassword(String email, String password) {
+        // Display a progress dialog and disable input
+        showProgressDialog(R.string.dialog_progress_register);
+        enableInput(false);
+
+        // Start the account creation process
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, mUserCreationResultListener);
     }
 
     public boolean validateInput() {
@@ -116,29 +122,29 @@ public class RegisterActivity extends BaseActivity {
         nameInput.setError(null);
         emailInput.setError(null);
         passwordInput.setError(null);
-        confirmPasswordInput.setError(null);
+        passwordConfirmButton.setError(null);
 
         String name = this.nameInput.getText().toString();
         if (name.isEmpty()) {
-            this.nameInput.setError(getString(R.string.err_bad_name));
+            this.nameInput.setError(getString(R.string.error_input_name));
             return false;
         }
 
         String email = this.emailInput.getText().toString();
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            this.emailInput.setError(getString(R.string.err_bad_email));
+            this.emailInput.setError(getString(R.string.error_input_email));
             return false;
         }
 
         String password = passwordInput.getText().toString();
         if (password.isEmpty() || password.length() < 6) {
-            passwordInput.setError(getString(R.string.err_bad_password));
+            passwordInput.setError(getString(R.string.error_input_password));
             return false;
         }
 
-        String password2 = confirmPasswordInput.getText().toString();
+        String password2 = passwordConfirmButton.getText().toString();
         if (!password2.equals(password)) {
-            confirmPasswordInput.setError(getString(R.string.err_mismatch_passwords));
+            passwordConfirmButton.setError(getString(R.string.error_input_password_confirm));
             return false;
         }
 
@@ -149,23 +155,26 @@ public class RegisterActivity extends BaseActivity {
         nameInput.setEnabled(enabled);
         emailInput.setEnabled(enabled);
         passwordInput.setEnabled(enabled);
-        confirmPasswordInput.setEnabled(enabled);
+        passwordConfirmButton.setEnabled(enabled);
         registerButton.setEnabled(enabled);
-        loginText.setEnabled(enabled);
+        loginLink.setEnabled(enabled);
     }
 
     private class UserCreationResultListener implements OnCompleteListener<AuthResult> {
         @Override
         public void onComplete(@NonNull Task<AuthResult> task) {
             // Check if account creation was successful
-            if (task.isSuccessful() && task.getResult().getUser() != null) {
-                // Cool, now we can get the URI of the default profile picture
-                mStorage.getReference("images/default_profilePicture").getDownloadUrl()
+            if (task.isSuccessful()) {
+                // Get the URI of the default profile picture
+                mStorage.getReferenceFromUrl("gs://" + getString(R.string.firebase_bucket))
+                        .child("images")
+                        .child("default_profilePicture")
+                        .getDownloadUrl()
                         .addOnCompleteListener(RegisterActivity.this, mStorageUriResultListener);
             } else {
                 // Log the error internally and notify the user
                 Log.e(TAG, "UserCreationResultListener", task.getException());
-                showSnackbar(R.string.error_register_failed);
+                showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
                 hideProgressDialog();
@@ -178,8 +187,8 @@ public class RegisterActivity extends BaseActivity {
         @Override
         public void onComplete(@NonNull Task<Uri> task) {
             // Check if getting the download URI was successfull
-            if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                // Awesome, we're about halfway done. Now we can update the users profile
+            if (task.isSuccessful()) {
+                // Update the users profile to include the display name they gave and a default profile picture
                 UserProfileChangeRequest profileUpdateRequest = new UserProfileChangeRequest.Builder()
                         .setDisplayName(nameInput.getText().toString())
                         .setPhotoUri(task.getResult())
@@ -190,7 +199,7 @@ public class RegisterActivity extends BaseActivity {
             } else {
                 // Log the error internally and notify the user
                 Log.e(TAG, "StorageUriResultListener", task.getException());
-                showSnackbar(R.string.error_register_failed);
+                showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
                 hideProgressDialog();
@@ -203,16 +212,17 @@ public class RegisterActivity extends BaseActivity {
         @Override
         public void onComplete(@NonNull Task<Void> task) {
             // Check if the users profile was updated successfully
-            if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                // Sweet, we just need to add the user to the database
+            if (task.isSuccessful()) {
+                // Add the user to the database
+                FirebaseUser user = mAuth.getCurrentUser();
                 mDatabase.getReference("users")
-                        .child(mAuth.getCurrentUser().getUid())
-                        .setValue(new DatabaseUser(mAuth.getCurrentUser()))
+                        .child(user.getUid())
+                        .setValue(new DatabaseUser(user.getDisplayName(), user.getPhotoUrl().toString(), new ArrayList<Integer>()))
                         .addOnCompleteListener(RegisterActivity.this, mDatabaseUpdateResultListener);
             } else {
                 // Log the error internally and notify the user
                 Log.e(TAG, "UserProfileUpdateResultListener", task.getException());
-                showSnackbar(R.string.error_register_failed);
+                showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
                 hideProgressDialog();
@@ -225,14 +235,14 @@ public class RegisterActivity extends BaseActivity {
         @Override
         public void onComplete(@NonNull Task<Void> task) {
             // Check if the user was successfuly written to the database
-            if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                // Home stretch baby! Only thing left is to send a verification emailInput
+            if (task.isSuccessful()) {
+                // Send a verification email
                 mAuth.getCurrentUser().sendEmailVerification()
                         .addOnCompleteListener(RegisterActivity.this, mEmailVerificationResultListener);
             } else {
                 // Log the error internally and notify the user
                 Log.e(TAG, "DatabaseUpdateResultListener", task.getException());
-                showSnackbar(R.string.error_register_failed);
+                showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
                 hideProgressDialog();
@@ -244,10 +254,9 @@ public class RegisterActivity extends BaseActivity {
     private class EmailVerificationResultListener implements OnCompleteListener<Void> {
         @Override
         public void onComplete(@NonNull Task<Void> task) {
-            // Check if the verification emailInput was successfully sent to the user
-            if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                // Finally, the registration process is complete
-                // Set the result of this activity to include the users ID and emailInput,
+            // Check if the verification email was successfully sent to the user
+            if (task.isSuccessful()) {
+                // Set the result of this activity to include the users ID and email,
                 // then return back to the previous Activity (LoginActivity)
                 setResult(RESULT_OK, new Intent()
                         .putExtra("firebase-uid", mAuth.getCurrentUser().getUid())
@@ -259,7 +268,7 @@ public class RegisterActivity extends BaseActivity {
             } else {
                 // Log the error internally and notify the user
                 Log.e(TAG, "EmailVerificationResultListener", task.getException());
-                showSnackbar(R.string.error_register_failed);
+                showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
                 hideProgressDialog();

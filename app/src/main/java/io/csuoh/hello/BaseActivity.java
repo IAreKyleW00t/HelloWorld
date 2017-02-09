@@ -39,7 +39,7 @@ public class BaseActivity extends AppCompatActivity {
         if (mProgressDialog == null) {
             mProgressDialog = new MaterialDialog.Builder(this)
                     .title(title)
-                    .content(R.string.text_wait)
+                    .content(R.string.please_wait)
                     .progress(true, 0)
                     .build();
         } else if (!mProgressDialog.isShowing()) {
@@ -52,6 +52,13 @@ public class BaseActivity extends AppCompatActivity {
     public final void hideProgressDialog() {
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
+        }
+    }
+
+    @MainThread
+    public final void updateProgressDialog(@StringRes int title) {
+        if (mProgressDialog != null) {
+            mProgressDialog.setTitle(title);
         }
     }
 

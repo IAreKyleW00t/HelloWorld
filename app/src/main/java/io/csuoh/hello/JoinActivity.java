@@ -20,20 +20,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.google.firebase.database.FirebaseDatabase;
-
 import butterknife.ButterKnife;
 
 public class JoinActivity extends BaseActivity {
     public static final String TAG = JoinActivity.class.getSimpleName();
 
-    // Firebase
-    FirebaseDatabase mDatabase;
-
     public static Intent createIntent(Context context) {
-        Intent intent = new Intent();
-        intent.setClass(context, JoinActivity.class);
-        return intent;
+        return new Intent(context, JoinActivity.class);
     }
 
     @Override
@@ -42,7 +35,5 @@ public class JoinActivity extends BaseActivity {
         setContentView(R.layout.activity_join);
         setTitle(R.string.title_join);
         ButterKnife.bind(this);
-
-        mDatabase = FirebaseDatabase.getInstance();
     }
 }

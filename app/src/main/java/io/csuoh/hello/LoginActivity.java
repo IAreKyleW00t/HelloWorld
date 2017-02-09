@@ -34,19 +34,24 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.csuoh.hello.models.DatabaseUser;
 
-public class LoginActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class LoginActivity extends BaseActivity {
     public static final String TAG = LoginActivity.class.getSimpleName();
 
     // Request codes
@@ -55,19 +60,27 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
             RC_REGISTER         = 69;
 
     // Activity elements
-    @BindView(R.id.input_email) EditText _email;
-    @BindView(R.id.input_password) EditText _password;
-    @BindView(R.id.btn_login) Button _login;
-    @BindView(R.id.btn_login_google) SignInButton _google;
-    @BindView(R.id.link_register) TextView _register;
+    @BindView(R.id.input_email) EditText emailInput;
+    @BindView(R.id.input_password) EditText passwordInput;
+    @BindView(R.id.button_login_email) Button loginEmailButton;
+    @BindView(R.id.button_login_google) SignInButton loginGoogleButton;
+    @BindView(R.id.link_register) TextView registerLink;
+
+    // Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
 
     // Google
     private GoogleApiClient mGoogleApiClient;
 
+    // Listeners
+    private UserLoginResultListener mUserLoginResultListener;
+    private SingleValueResultListener mSingleValueResultListener;
+    private DatabaseUpdateResultListener mDatabaseUpdateResultListener;
+    private EmailVerificationResultListener mEmailVerificationResultListener;
+
     public static Intent createIntent(Context context) {
-        Intent intent = new Intent();
-        intent.setClass(context, LoginActivity.class);
-        return intent;
+        return new Intent(context, LoginActivity.class);
     }
 
     @Override
@@ -76,181 +89,259 @@ public class LoginActivity extends BaseActivity implements GoogleApiClient.OnCon
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
 
-        // Check if user is already logged in
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null && user.isEmailVerified()) { // Logged in w/ verified emailInput
+        // Get the instances of all our Firebase objects
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
+
+        // Check if the current user is logged in and verified
+        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
             startActivity(MainActivity.createIntent(this));
             finish();
             return;
         }
 
-        // Configure Google Sign in to request user ID, emailInput, etc.
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.token_google_client_id))
+        // Configure the GoogleSignInOptions to request the users basic profile information and their email address
+        GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.google_client_id))
                 .requestEmail()
                 .build();
 
-        // Build GoogleApiClient with settings from GoogleSignInOptions
+        // Build a GoogleApiClient with the settings from our GoogleSignInOptions
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .enableAutoManage(this, new GoogleConnectionFailedListener())
+                .addApi(Auth.GOOGLE_SIGN_IN_API, options)
                 .build();
+
+        // Initialize all of our Listeners
+        mUserLoginResultListener = new UserLoginResultListener();
+        mSingleValueResultListener = new SingleValueResultListener();
+        mDatabaseUpdateResultListener = new DatabaseUpdateResultListener();
+        mEmailVerificationResultListener = new EmailVerificationResultListener();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case RC_REGISTER: // DatabaseUser register
-                if (resultCode == RESULT_OK) { // Successful registration
-                    _email.setText(data.getStringExtra("firebase-email"));
-                    _password.setText(null);
-                    showSnackbar(R.string.msg_verify_email);
+            case RC_REGISTER: // Registration result
+                // Check if the Activity was successful
+                if (resultCode == RESULT_OK) {
+                    // Autofill the users email address and clear the previous password
+                    emailInput.setText(data.getStringExtra("firebase-email"));
+                    passwordInput.setText(null);
+
+                    // Notify the user that their account was created successfully and that a confirmation email was sent to them
+                    showSnackbar(R.string.msg_register_success, data.getStringExtra("firebase-email"));
                 }
                 break;
-            case RC_GOOGLE_SIGNIN: // Google sign in
+
+            case RC_GOOGLE_SIGNIN: // Google sign-in result
+                // Save the result from the Google Sign-In process and check if it was successful
                 GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-                if (result.isSuccess()) { // Successfully linked Google account
-                    GoogleSignInAccount account = result.getSignInAccount();
-                    firebaseAuthWithGoogle(account);
+                if (result.isSuccess()) {
+                    // Log the user in using their Google account
+                    firebaseAuthWithGoogle(result.getSignInAccount());
                 }
                 break;
-            default: // Default to super
+
+            default: // Default
                 super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.w(TAG, "onConnectionFailed:" + connectionResult);
-        showToast(R.string.err_google_play);
+    @OnClick(R.id.button_login_email)
+    public void onClickEmailLogin() {
+        // Validate user input before continuing
+        if (!validateInput()) {
+            return;
+        }
+
+        // Log the user in with their Firebase email and password
+        firebaseAuthWithEmailAndPassword(emailInput.getText().toString(), passwordInput.getText().toString());
     }
 
-    @OnClick(R.id.btn_login)
-    public void onClickEmailSignIn() {
-        if (!validateInput()) return;
-        firebaseAuthWithEmailAndPassword(_email.getText().toString(), _password.getText().toString());
-    }
-
-    @OnClick(R.id.btn_login_google)
-    public void onClickGoogleSignIn() {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(signInIntent, RC_GOOGLE_SIGNIN);
+    @OnClick(R.id.button_login_google)
+    public void onClickGoogleLogin() {
+        // Start Google's authentication Activity
+        startActivityForResult(Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient), RC_GOOGLE_SIGNIN);
     }
 
     @OnClick(R.id.link_register)
     public void onClickRegister() {
-        FirebaseAuth.getInstance().signOut(); // Safety precaution
+        // Start the Registration Activity and log the user out (safety)
         startActivityForResult(RegisterActivity.createIntent(LoginActivity.this), RC_REGISTER);
+        mAuth.signOut();
     }
 
     private void firebaseAuthWithEmailAndPassword(String email, String password) {
-        // Display progress dialog and disable input
+        // Display a progress dialog and disable input
+        showProgressDialog(R.string.dialog_progress_login);
         enableInput(false);
-        showProgressDialog(R.string.dialog_login);
 
-        // Attempt to sign in with emailInput and password
+        // Start the login process with an email account
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        FirebaseUser user = authResult.getUser();
-
-                        // Mover user to MainActivity if verified,
-                        // otherwise send another confirmation emailInput
-                        if (user.isEmailVerified()) {
-                            startActivity(MainActivity.createIntent(LoginActivity.this));
-                            finish();
-                        } else {
-                            user.sendEmailVerification();
-                            showSnackbar(R.string.msg_verify_email);
-                        }
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Log error internally and display it to the user
-                        Log.e(TAG, "signInWithEmailAndPassword", e);
-                        showSnackbar(R.string.err_show, e.getMessage());
-                    }
-                })
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        // Automatically dismiss the progress dialog and enable input again
-                        enableInput(true);
-                        hideProgressDialog();
-                    }
-                });
+                .addOnCompleteListener(this, mUserLoginResultListener);
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
         // Display progress dialog and disable input
         enableInput(false);
-        showProgressDialog(R.string.dialog_login);
+        showProgressDialog(R.string.dialog_progress_login);
 
-        // Attempt to sign in with Google account
+        // Start the login process with a Google account
         FirebaseAuth.getInstance().signInWithCredential(GoogleAuthProvider.getCredential(account.getIdToken(), null))
-                .addOnSuccessListener(this, new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        FirebaseUser user = authResult.getUser();
-
-                        // Mover user to MainActivity if verified,
-                        // otherwise send another confirmation emailInput
-                        // This shouldn't be needed for Google accounts, but just to be safe...
-                        if (user.isEmailVerified()) {
-                            startActivity(MainActivity.createIntent(LoginActivity.this));
-                            finish();
-                        } else {
-                            user.sendEmailVerification();
-                            showSnackbar(R.string.msg_verify_email);
-                        }
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Log error internally and display it to the user
-                        Log.e(TAG, "signInWithCredential", e);
-                        showSnackbar(R.string.err_show, e.getMessage());
-                    }
-                })
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        // Automatically dismiss the progress dialog and enable input again
-                        enableInput(true);
-                        hideProgressDialog();
-                    }
-                });
+                .addOnCompleteListener(this, mUserLoginResultListener);
     }
 
     public boolean validateInput() {
         // Clear old input errors
-        _email.setError(null);
-        _password.setError(null);
+        emailInput.setError(null);
+        passwordInput.setError(null);
 
-        String email = _email.getText().toString();
+        String email = emailInput.getText().toString();
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _email.setError(getString(R.string.err_bad_email));
+            emailInput.setError(getString(R.string.error_input_email));
             return false;
-        } else _email.setError(null);
+        } else emailInput.setError(null);
 
-        String password = _password.getText().toString();
+        String password = passwordInput.getText().toString();
         if (password.isEmpty() || password.length() < 6) {
-            _password.setError(getString(R.string.err_bad_password));
+            passwordInput.setError(getString(R.string.error_input_password));
             return false;
-        } else _email.setError(null);
+        } else emailInput.setError(null);
 
         return true;
     }
 
     public void enableInput(boolean enabled) {
-        _email.setEnabled(enabled);
-        _password.setEnabled(enabled);
-        _login.setEnabled(enabled);
-        _google.setEnabled(enabled);
-        _register.setEnabled(enabled);
+        emailInput.setEnabled(enabled);
+        passwordInput.setEnabled(enabled);
+        loginEmailButton.setEnabled(enabled);
+        loginGoogleButton.setEnabled(enabled);
+        registerLink.setEnabled(enabled);
+    }
+
+    private class GoogleConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
+        @Override
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+            // Log the error internally and notify the user
+            Log.e(TAG, connectionResult.getErrorMessage());
+            showSnackbar(R.string.error_msg_google_play);
+
+            // Clear the users password as an extra level of security
+            passwordInput.setText(null);
+        }
+    }
+
+    private class UserLoginResultListener implements OnCompleteListener<AuthResult> {
+        @Override
+        public void onComplete(@NonNull Task<AuthResult> task) {
+            // Check if the user was logged in successfully
+            if (task.isSuccessful() && task.getResult().getUser() != null) {
+                // Check if the current user exists in the database
+                mDatabase.getReference("users")
+                        .child(mAuth.getCurrentUser().getUid())
+                        .addListenerForSingleValueEvent(mSingleValueResultListener);
+            } else {
+                // Log the error internally and notify the user
+                Log.e(TAG, "UserLoginResultListener", task.getException());
+                showSnackbar(R.string.error_msg_login);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            }
+        }
+    }
+
+    private class SingleValueResultListener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            // Check if the key exists in the database
+            if (!dataSnapshot.exists()) {
+                // Add the user to the database
+                FirebaseUser user = mAuth.getCurrentUser();
+                mDatabase.getReference("users")
+                        .child(user.getUid())
+                        .setValue(new DatabaseUser(user.getDisplayName(), user.getPhotoUrl().toString(), new ArrayList<Integer>()))
+                        .addOnCompleteListener(LoginActivity.this, mDatabaseUpdateResultListener);
+            } else {
+                // Check if their email is verified
+                if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().isEmailVerified()) {
+                    // Move the user to the MainActivity
+                    startActivity(MainActivity.createIntent(LoginActivity.this));
+                    finish();
+
+                    // Remove the progress dialog since it is no longer visible
+                    hideProgressDialog();
+                } else {
+                    // Send another verification email
+                    mAuth.getCurrentUser().sendEmailVerification()
+                            .addOnCompleteListener(mEmailVerificationResultListener);
+                }
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            // Log the error internally and notify the user
+            Log.e(TAG, "SingleValueResultListener", databaseError.toException());
+            showSnackbar(R.string.error_msg_login);
+
+            // Remove the progress dialog and enable input again
+            hideProgressDialog();
+            enableInput(true);
+        }
+    }
+
+    private class DatabaseUpdateResultListener implements OnCompleteListener<Void> {
+        @Override
+        public void onComplete(@NonNull Task<Void> task) {
+            // Check if the user was successfuly written to the database
+            if (task.isSuccessful()) {
+                // Send a verification email (if needed)
+                if (!mAuth.getCurrentUser().isEmailVerified()) {
+                    mAuth.getCurrentUser().sendEmailVerification()
+                            .addOnCompleteListener(LoginActivity.this, mEmailVerificationResultListener);
+                } else {
+                    // Move the user to the MainActivity
+                    startActivity(MainActivity.createIntent(LoginActivity.this));
+                    finish();
+
+                    // Remove the progress dialog since it is no longer visible
+                    hideProgressDialog();
+                }
+            } else {
+                // Log the error internally and notify the user
+                Log.e(TAG, "DatabaseUpdateResultListener", task.getException());
+                showSnackbar(R.string.error_msg_login);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            }
+        }
+    }
+
+    private class EmailVerificationResultListener implements OnCompleteListener<Void> {
+        @Override
+        public void onComplete(@NonNull Task<Void> task) {
+            // Check if the verification email was successfully sent to the user
+            if (task.isSuccessful()) {
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+
+                // Notify the user that a verification email was sent to them
+                showSnackbar(R.string.msg_login_verify_email, mAuth.getCurrentUser().getEmail());
+            } else {
+                // Log the error internally and notify the user
+                Log.e(TAG, "EmailVerificationResultListener", task.getException());
+                showSnackbar(R.string.error_msg_login);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            }
+        }
     }
 }

@@ -16,28 +16,21 @@
  */
 package io.csuoh.hello.models;
 
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.IgnoreExtraProperties;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @IgnoreExtraProperties
 public class DatabaseUser {
-    public String name, email, photo;
+    public String name, photo;
     public List<Integer> groups;
 
     public DatabaseUser() {
         // Default constructor required for calls to DataSnapshot.getValue(DatabaseUser.class)
     }
 
-    public DatabaseUser(FirebaseUser user) {
-        this(user.getDisplayName(), user.getEmail(), user.getPhotoUrl().toString(), new ArrayList<Integer>());
-    }
-
-    public DatabaseUser(String name, String email, String photo, List<Integer> groups) {
+    public DatabaseUser(String name, String photo, List<Integer> groups) {
         this.name = name;
-        this.email = email;
         this.photo = photo;
         this.groups = groups;
     }

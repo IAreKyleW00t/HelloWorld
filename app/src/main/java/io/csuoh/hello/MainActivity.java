@@ -23,7 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -36,10 +36,12 @@ public class MainActivity extends BaseActivity {
             MENU_SETTINGS   = Menu.FIRST,
             MENU_SIGNOUT    = Menu.FIRST + 1;
 
+    // Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
+
     public static Intent createIntent(Context context) {
-        Intent intent = new Intent();
-        intent.setClass(context, MainActivity.class);
-        return intent;
+        return new Intent(context, MainActivity.class);
     }
 
     @Override
@@ -49,35 +51,45 @@ public class MainActivity extends BaseActivity {
         setTitle(R.string.title_main);
         ButterKnife.bind(this);
 
-        // Check if user is logged in
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null || !user.isEmailVerified()) {
+        // Get the instances of all our Firebase objects
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
+
+        // Check if the current user is logged in and verified
+        if (mAuth.getCurrentUser() == null || !mAuth.getCurrentUser().isEmailVerified()) {
             startActivity(LoginActivity.createIntent(this));
-            showToast(R.string.msg_reauthenticate);
             finish();
+
+            // Notify the user that they were logged out
+            showToast(R.string.msg_reauthenticate);
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(0, MENU_SETTINGS, Menu.NONE, R.string.menu_settings);
-        menu.add(0, MENU_SIGNOUT, Menu.NONE, R.string.menu_logout);
+        menu.add(0, MENU_SIGNOUT, Menu.NONE, R.string.menu_signout);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case MENU_SETTINGS: // Open settings
+            case MENU_SETTINGS: // Settings
                 startActivity(SettingsActivity.createIntent(MainActivity.this));
                 return true;
+
             case MENU_SIGNOUT: // Logout
-                FirebaseAuth.getInstance().signOut();
+                // Sign the user out of their current Firebase session and move them back to the login Activity
+                mAuth.signOut();
                 startActivity(LoginActivity.createIntent(this));
-                showToast(R.string.msg_logout);
                 finish();
+
+                // Notify the user that they were logged out successfully
+                showToast(R.string.msg_signout);
                 return true;
-            default: // Default to super
+
+            default: // Default
                 return super.onOptionsItemSelected(item);
         }
     }

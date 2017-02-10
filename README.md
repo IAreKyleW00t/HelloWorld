@@ -15,7 +15,7 @@ HelloWorld is a simple and clean chatting app that utilizes [Firebase](https://f
 * Support back to KitKat (API 19)
 * Follows Google's Material Design Guidelines*
 
-**Attempts to follow as best as possible; Sorry I'm still new to Android development.* :smile:
+**Attempts to follow as best as possible.*
 
 Files
 -----

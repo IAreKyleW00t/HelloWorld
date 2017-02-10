@@ -72,9 +72,9 @@ public class SettingsActivity extends BaseActivity {
     // Listeners
     private ReloadUserProfileResultListener mReloadUserProfileResultListener;
     private UserProfileUpdateResultListener mUserProfileUpdateResultListener;
-    private DatabaseUpdateProfileResultListener mDatabaseUpdateProfileResultListener;
+    private UserProfilePhotoUpdateResultListener mUserProfilePhotoUpdateResultListener;
     private StorageUploadResultListener mStorageUploadResultListener;
-    private ProfilePhotoUpdateResultListener mProfilePhotoUpdateResultListener;
+    private DatabaseUpdateProfileResultListener mDatabaseUpdateProfileResultListener;
     private DatabaseUpdatePhotoResultListener mDatabaseUpdatePhotoResultListener;
 
     public static Intent createIntent(Context context) {
@@ -96,9 +96,9 @@ public class SettingsActivity extends BaseActivity {
         // Initialize all of our Listeners
         mReloadUserProfileResultListener = new ReloadUserProfileResultListener();
         mUserProfileUpdateResultListener = new UserProfileUpdateResultListener();
-        mDatabaseUpdateProfileResultListener = new DatabaseUpdateProfileResultListener();
+        mUserProfilePhotoUpdateResultListener = new UserProfilePhotoUpdateResultListener();
         mStorageUploadResultListener = new StorageUploadResultListener();
-        mProfilePhotoUpdateResultListener = new ProfilePhotoUpdateResultListener();
+        mDatabaseUpdateProfileResultListener = new DatabaseUpdateProfileResultListener();
         mDatabaseUpdatePhotoResultListener = new DatabaseUpdatePhotoResultListener();
 
         // Load the current users info to the UI
@@ -119,14 +119,14 @@ public class SettingsActivity extends BaseActivity {
     }
 
     @OnClick(R.id.image_user_picture)
-    public void onChangeProfilePicture() {
+    public void onClickProfilePicture() {
         startActivityForResult(new Intent(Intent.ACTION_GET_CONTENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("image/*"), RC_OPEN_FILE);
     }
 
     @OnClick(R.id.link_password_change)
-    public void onChangePassword() {
+    public void onClickChangePassword() {
         // Disable input in the background
         enableInput(false);
 
@@ -235,7 +235,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     @OnClick(R.id.button_save)
-    public void onSave() {
+    public void onClickSave() {
         // Display progress dialog and disable input
         enableInput(false);
         showProgressDialog(R.string.dialog_progress_save);
@@ -283,6 +283,7 @@ public class SettingsActivity extends BaseActivity {
     private class ReloadUserProfileResultListener implements OnCompleteListener<Void> {
         @Override
         public void onComplete(@NonNull Task<Void> task) {
+            // Save current user reference
             FirebaseUser user = mAuth.getCurrentUser();
 
             // Check if reloading the users profile was successful
@@ -353,21 +354,21 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
-    private class DatabaseUpdateProfileResultListener implements OnCompleteListener<Void> {
+    private class UserProfilePhotoUpdateResultListener implements OnCompleteListener<Void> {
         @Override
         public void onComplete(@NonNull Task<Void> task) {
-            // Check if the user profile was successfully updated
+            // Check if the users profile was updated successfully
             if (task.isSuccessful()) {
-                // Tell the user their settings were saved successfully
-                showSnackbar(R.string.msg_profile_update);
-
-                // Remove the progress dialog and enable input again
-                hideProgressDialog();
-                enableInput(true);
+                // Update the users photo URL in the database
+                FirebaseUser user = mAuth.getCurrentUser();
+                mDatabase.getReference("users")
+                        .child(user.getUid()).child("photo")
+                        .setValue(user.getPhotoUrl().toString())
+                        .addOnCompleteListener(SettingsActivity.this, mDatabaseUpdatePhotoResultListener);
             } else {
                 // Log the error internally and notify the user
-                Log.e(TAG, "DatabaseUpdateProfileResultListener", task.getException());
-                showSnackbar(R.string.error_msg_profile_update);
+                Log.e(TAG, "UserProfilePhotoUpdateResultListener", task.getException());
+                showSnackbar(R.string.error_msg_profile_picture_update);
 
                 // Remove the progress dialog and enable input again
                 hideProgressDialog();
@@ -385,7 +386,7 @@ public class SettingsActivity extends BaseActivity {
                     .build();
 
             mAuth.getCurrentUser().updateProfile(profile)
-                    .addOnCompleteListener(SettingsActivity.this, mProfilePhotoUpdateResultListener);
+                    .addOnCompleteListener(SettingsActivity.this, mUserProfilePhotoUpdateResultListener);
         }
 
         @Override
@@ -397,29 +398,6 @@ public class SettingsActivity extends BaseActivity {
             // Remove the progress dialog and enable input again
             hideProgressDialog();
             enableInput(true);
-        }
-    }
-
-    private class ProfilePhotoUpdateResultListener implements OnCompleteListener<Void> {
-        @Override
-        public void onComplete(@NonNull Task<Void> task) {
-            // Check if the users profile was updated successfully
-            if (task.isSuccessful()) {
-                // Update the users photo URL in the database
-                FirebaseUser user = mAuth.getCurrentUser();
-                mDatabase.getReference("users")
-                        .child(user.getUid()).child("photo")
-                        .setValue(user.getPhotoUrl().toString())
-                        .addOnCompleteListener(SettingsActivity.this, mDatabaseUpdatePhotoResultListener);
-            } else {
-                // Log the error internally and notify the user
-                Log.e(TAG, "ProfilePhotoUpdateResultListener", task.getException());
-                showSnackbar(R.string.error_msg_profile_picture_update);
-
-                // Remove the progress dialog and enable input again
-                hideProgressDialog();
-                enableInput(true);
-            }
         }
     }
 
@@ -436,6 +414,29 @@ public class SettingsActivity extends BaseActivity {
                 // Log the error internally and notify the user
                 Log.e(TAG, "DatabaseUpdatePhotoResultListener", task.getException());
                 showSnackbar(R.string.error_msg_profile_picture_update);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            }
+        }
+    }
+
+    private class DatabaseUpdateProfileResultListener implements OnCompleteListener<Void> {
+        @Override
+        public void onComplete(@NonNull Task<Void> task) {
+            // Check if the user profile was successfully updated
+            if (task.isSuccessful()) {
+                // Tell the user their settings were saved successfully
+                showSnackbar(R.string.msg_profile_update);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            } else {
+                // Log the error internally and notify the user
+                Log.e(TAG, "DatabaseUpdateProfileResultListener", task.getException());
+                showSnackbar(R.string.error_msg_profile_update);
 
                 // Remove the progress dialog and enable input again
                 hideProgressDialog();

@@ -18,18 +18,18 @@ package io.csuoh.hello.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
-import java.util.List;
+import java.util.Map;
 
 @IgnoreExtraProperties
 public class DatabaseUser {
     public String name, photo;
-    public List<Integer> groups;
+    public Map<String, Boolean> groups;
 
     public DatabaseUser() {
         // Default constructor required for calls to DataSnapshot.getValue(DatabaseUser.class)
     }
 
-    public DatabaseUser(String name, String photo, List<Integer> groups) {
+    public DatabaseUser(String name, String photo, Map<String, Boolean> groups) {
         this.name = name;
         this.photo = photo;
         this.groups = groups;

@@ -45,6 +45,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -262,7 +263,7 @@ public class LoginActivity extends BaseActivity {
                 FirebaseUser user = mAuth.getCurrentUser();
                 mDatabase.getReference("users")
                         .child(user.getUid())
-                        .setValue(new DatabaseUser(user.getDisplayName(), user.getPhotoUrl().toString(), new ArrayList<Integer>()))
+                        .setValue(new DatabaseUser(user.getDisplayName(), user.getPhotoUrl().toString(), new HashMap<String, Boolean>()))
                         .addOnCompleteListener(LoginActivity.this, mDatabaseUpdateResultListener);
             } else {
                 // Check if their email is verified

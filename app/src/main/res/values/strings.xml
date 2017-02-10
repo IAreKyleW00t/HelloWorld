@@ -18,7 +18,7 @@
 <resources>
     <!-- Application related values -->
     <string name="app_name">HelloWorld</string>
-    <string name="app_version">0.10.5</string>
+    <string name="app_version">0.10.6</string>
 
     <!-- Basic values -->
     <string name="please_wait">Please wait&#8230;</string>

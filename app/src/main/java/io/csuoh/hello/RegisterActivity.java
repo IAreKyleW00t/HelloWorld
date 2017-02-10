@@ -37,6 +37,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -217,7 +218,7 @@ public class RegisterActivity extends BaseActivity {
                 FirebaseUser user = mAuth.getCurrentUser();
                 mDatabase.getReference("users")
                         .child(user.getUid())
-                        .setValue(new DatabaseUser(user.getDisplayName(), user.getPhotoUrl().toString(), new ArrayList<Integer>()))
+                        .setValue(new DatabaseUser(user.getDisplayName(), user.getPhotoUrl().toString(), new HashMap<String, Boolean>()))
                         .addOnCompleteListener(RegisterActivity.this, mDatabaseUpdateResultListener);
             } else {
                 // Log the error internally and notify the user

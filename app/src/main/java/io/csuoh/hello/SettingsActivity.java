@@ -35,7 +35,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -71,6 +70,7 @@ public class SettingsActivity extends BaseActivity {
 
     // Listeners
     private ReloadUserProfileResultListener mReloadUserProfileResultListener;
+    private UserChangePasswordResultListener mUserChangePasswordResultListener;
     private UserProfileUpdateResultListener mUserProfileUpdateResultListener;
     private UserProfilePhotoUpdateResultListener mUserProfilePhotoUpdateResultListener;
     private StorageUploadResultListener mStorageUploadResultListener;
@@ -95,6 +95,7 @@ public class SettingsActivity extends BaseActivity {
 
         // Initialize all of our Listeners
         mReloadUserProfileResultListener = new ReloadUserProfileResultListener();
+        mUserChangePasswordResultListener = new UserChangePasswordResultListener();
         mUserProfileUpdateResultListener = new UserProfileUpdateResultListener();
         mUserProfilePhotoUpdateResultListener = new UserProfilePhotoUpdateResultListener();
         mStorageUploadResultListener = new StorageUploadResultListener();
@@ -130,7 +131,6 @@ public class SettingsActivity extends BaseActivity {
         // Disable input in the background
         enableInput(false);
 
-        // TODO Clean up change password Dialog
         // Create and display the change password dialog
         new MaterialDialog.Builder(this)
                 .title(R.string.dialog_title_change_password)
@@ -142,85 +142,43 @@ public class SettingsActivity extends BaseActivity {
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        // Saved View and elements
-                        View mView = dialog.getCustomView();
-                        EditText _currentPassword = (EditText) mView.findViewById(R.id.input_password_current);
-                        EditText _newPassword = (EditText) mView.findViewById(R.id.input_password_new);
-                        EditText _confirmPassword = (EditText) mView.findViewById(R.id.input_password_confirm);
+                        // Use ButterKnife to bind dialog elements
+                        EditText passwordCurrentInput = ButterKnife.findById(dialog, R.id.input_password_current);
+                        EditText passwordNewInput = ButterKnife.findById(dialog, R.id.input_password_new);
+                        EditText passwordConfirmInput = ButterKnife.findById(dialog, R.id.input_password_confirm);
 
-                        // Clear old input errors
-                        _currentPassword.setError(null);
-                        _newPassword.setError(null);
-                        _confirmPassword.setError(null);
+                        // Clear old error messages
+                        passwordCurrentInput.setError(null);
+                        passwordNewInput.setError(null);
+                        passwordConfirmInput.setError(null);
 
-                        // Validate user input
-                        final String currentPassword = _currentPassword.getText().toString();
+                        // Validate user input before continuing
+                        String currentPassword = passwordCurrentInput.getText().toString();
                         if (currentPassword.isEmpty()) {
-                            _currentPassword.setError(getString(R.string.error_input_password_current));
+                            passwordCurrentInput.setError(getString(R.string.error_input_password_current));
                             return;
                         }
 
-                        final String newPassword = _newPassword.getText().toString();
+                        String newPassword = passwordNewInput.getText().toString();
                         if (newPassword.isEmpty() || newPassword.length() < 6) {
-                            _newPassword.setError(getString(R.string.error_input_password_new));
+                            passwordNewInput.setError(getString(R.string.error_input_password_new));
                             return;
                         }
 
-                        final String confirmPassword = _confirmPassword.getText().toString();
+                        String confirmPassword = passwordConfirmInput.getText().toString();
                         if (!confirmPassword.equals(newPassword)) {
-                            _confirmPassword.setError(getString(R.string.error_input_password_confirm));
+                            passwordConfirmInput.setError(getString(R.string.error_input_password_confirm));
                             return;
                         }
 
-                        // Dismiss the current dialog and display the progress dialog
+                        // Remove the current dialog and display the progress dialog
                         dialog.dismiss();
                         showProgressDialog(R.string.dialog_progress_change_password);
 
-                        // Automatically re-authenticate the current user before
-                        // we change their password. This is required by Firebase
-                        AuthCredential credential = EmailAuthProvider.getCredential(mAuth.getCurrentUser().getEmail(), currentPassword);
-                        mAuth.getCurrentUser().reauthenticate(credential)
-                                .addOnSuccessListener(SettingsActivity.this, new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        // Attempt to update the current users password after
-                                        // they have re-authenticated successfully
-                                        mAuth.getCurrentUser().updatePassword(newPassword)
-                                                .addOnSuccessListener(SettingsActivity.this, new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void aVoid) {
-                                                        showSnackbar(R.string.msg_password_update);
-                                                    }
-                                                })
-                                                .addOnFailureListener(SettingsActivity.this, new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-                                                        Log.e(TAG, "updatePassword", e);
-                                                        showSnackbar(R.string.error_msg_password_update);
-                                                    }
-                                                })
-                                                .addOnCompleteListener(SettingsActivity.this, new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        // Automatically dismiss the progress dialog and enable input again
-                                                        enableInput(true);
-                                                        hideProgressDialog();
-                                                    }
-                                                });
-                                    }
-                                })
-                                .addOnFailureListener(SettingsActivity.this, new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        // Log error internally and display it to the user
-                                        Log.e(TAG, "updatePassword", e);
-                                        showSnackbar(R.string.error_msg_reauthenticate);
-
-                                        // Automatically dismiss the progress dialog and enable input again
-                                        enableInput(true);
-                                        hideProgressDialog();
-                                    }
-                                });
+                        // Automatically re-authenticate the current user before we change their password.
+                        // This is required by Firebase after a certain period of time
+                        mAuth.getCurrentUser().reauthenticate(EmailAuthProvider.getCredential(mAuth.getCurrentUser().getEmail(), currentPassword))
+                                .addOnCompleteListener(SettingsActivity.this, new UserReauthenicateResultListener(newPassword));
                     }
                 })
                 .onNegative(new MaterialDialog.SingleButtonCallback() {
@@ -328,6 +286,54 @@ public class SettingsActivity extends BaseActivity {
             // Remove the progress dialog and enable input again
             hideProgressDialog();
             enableInput(true);
+        }
+    }
+
+    private class UserReauthenicateResultListener implements OnCompleteListener<Void> {
+        private final String password;
+
+        private UserReauthenicateResultListener(final String password) {
+            this.password = password;
+        }
+
+        @Override
+        public void onComplete(@NonNull Task<Void> task) {
+            // Check if the user re-authenticated themselves successfully
+            if (task.isSuccessful()) {
+                mAuth.getCurrentUser().updatePassword(password)
+                        .addOnCompleteListener(SettingsActivity.this, mUserChangePasswordResultListener);
+            } else {
+                // Log the error internally and notify the user
+                Log.e(TAG, "UserReauthenicateResultListener", task.getException());
+                showSnackbar(R.string.error_msg_reauthenticate);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            }
+        }
+    }
+
+    private class UserChangePasswordResultListener implements OnCompleteListener<Void> {
+        @Override
+        public void onComplete(@NonNull Task<Void> task) {
+            // Check if the users password was updated successfully
+            if (task.isSuccessful()) {
+                // Tell the user their password was updated successfully
+                showSnackbar(R.string.msg_password_update);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            } else {
+                // Log the error internally and notify the user
+                Log.e(TAG, "UserChangePasswordResultListener", task.getException());
+                showSnackbar(R.string.error_msg_password_update);
+
+                // Remove the progress dialog and enable input again
+                hideProgressDialog();
+                enableInput(true);
+            }
         }
     }
 

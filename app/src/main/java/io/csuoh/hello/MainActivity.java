@@ -19,22 +19,22 @@ package io.csuoh.hello;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class MainActivity extends BaseActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
 
-    // Menu items
-    private static final int
-            MENU_SETTINGS   = Menu.FIRST,
-            MENU_SIGNOUT    = Menu.FIRST + 1;
+    // Activity elements
+    @BindView(R.id.list_chats) RecyclerView mRecyclerView;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -67,19 +67,18 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, MENU_SETTINGS, Menu.NONE, R.string.menu_settings);
-        menu.add(0, MENU_SIGNOUT, Menu.NONE, R.string.menu_signout);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case MENU_SETTINGS: // Settings
+            case R.id.menu_settings: // Settings
                 startActivity(SettingsActivity.createIntent(MainActivity.this));
                 return true;
 
-            case MENU_SIGNOUT: // Logout
+            case R.id.menu_signout: // Logout
                 // Sign the user out of their current Firebase session and move them back to the login Activity
                 mAuth.signOut();
                 startActivity(LoginActivity.createIntent(this));

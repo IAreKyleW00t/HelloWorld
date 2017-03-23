@@ -55,13 +55,13 @@ public class SettingsActivity extends BaseActivity {
             RC_OPEN_FILE    = 420;
 
     // Activity elements
-    @BindView(R.id.image_user_picture) ImageView userPictureImage;
-    @BindView(R.id.input_user_name) EditText userNameInput;
-    @BindView(R.id.text_user_email) TextView userEmailText;
-    @BindView(R.id.link_password_change) TextView passwordChangeLink;
-    @BindView(R.id.text_user_id) TextView userIdText;
-    @BindView(R.id.text_user_provider) TextView userProviderText;
-    @BindView(R.id.button_save) Button saveButton;
+    @BindView(R.id.image_user_picture) ImageView mProfilePicture;
+    @BindView(R.id.input_user_name) EditText mName;
+    @BindView(R.id.text_user_email) TextView mEmail;
+    @BindView(R.id.link_password_change) TextView mChangePasswordLink;
+    @BindView(R.id.text_user_id) TextView mUserId;
+    @BindView(R.id.text_user_provider) TextView mProvider;
+    @BindView(R.id.button_save) Button mSaveButton;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -200,7 +200,7 @@ public class SettingsActivity extends BaseActivity {
 
         // Update the current users profile based on what is editable in the settings Activity
         UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
-                .setDisplayName(userNameInput.getText().toString())
+                .setDisplayName(mName.getText().toString())
                 .build();
 
         mAuth.getCurrentUser().updateProfile(profile)
@@ -232,10 +232,10 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void enableInput(boolean enabled) {
-        userPictureImage.setClickable(enabled);
-        userNameInput.setEnabled(enabled);
-        passwordChangeLink.setEnabled(enabled);
-        saveButton.setEnabled(enabled);
+        mProfilePicture.setClickable(enabled);
+        mName.setEnabled(enabled);
+        mChangePasswordLink.setEnabled(enabled);
+        mSaveButton.setEnabled(enabled);
     }
 
     private class ReloadUserProfileResultListener implements OnCompleteListener<Void> {
@@ -258,28 +258,28 @@ public class SettingsActivity extends BaseActivity {
                     .placeholder(R.drawable.default_user_picture)
                     .centerCrop()
                     .dontAnimate()
-                    .into(userPictureImage);
+                    .into(mProfilePicture);
 
             // Display the current users remaining information
-            userNameInput.setText(user.getDisplayName());
-            userEmailText.setText(user.getEmail());
-            userIdText.setText(user.getUid());
+            mName.setText(user.getDisplayName());
+            mEmail.setText(user.getEmail());
+            mUserId.setText(user.getUid());
             switch (user.getProviders().get(0)) {
                 case "google.com": // Google
-                    userProviderText.setText(getString(R.string.provider_google));
+                    mProvider.setText(getString(R.string.provider_google));
                     break;
                 case "facebook.com": // Facebook
-                    userProviderText.setText(getString(R.string.provider_facebook));
+                    mProvider.setText(getString(R.string.provider_facebook));
                     break;
                 case "twitter.com": // Twitter
-                    userProviderText.setText(getString(R.string.provider_twitter));
+                    mProvider.setText(getString(R.string.provider_twitter));
                     break;
                 case "github.com": // GitHub
-                    userProviderText.setText(getString(R.string.provider_github));
+                    mProvider.setText(getString(R.string.provider_github));
                     break;
                 default: // Default to Firebase
-                    userProviderText.setText(getString(R.string.provider_firebase));
-                    passwordChangeLink.setVisibility(View.VISIBLE);
+                    mProvider.setText(getString(R.string.provider_firebase));
+                    mChangePasswordLink.setVisibility(View.VISIBLE);
                     break;
             }
 

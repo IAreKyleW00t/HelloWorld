@@ -36,7 +36,6 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import butterknife.BindView;
@@ -48,12 +47,12 @@ public class RegisterActivity extends BaseActivity {
     public static final String TAG = RegisterActivity.class.getSimpleName();
 
     // Activity elements
-    @BindView(R.id.input_name) EditText nameInput;
-    @BindView(R.id.input_email) EditText emailInput;
-    @BindView(R.id.input_password) EditText passwordInput;
-    @BindView(R.id.input_password_confirm) EditText passwordConfirmButton;
-    @BindView(R.id.button_register) Button registerButton;
-    @BindView(R.id.link_login) TextView loginLink;
+    @BindView(R.id.input_name) EditText mName;
+    @BindView(R.id.input_email) EditText mEmail;
+    @BindView(R.id.input_password) EditText mPassword;
+    @BindView(R.id.input_password_confirm) EditText mPasswordConfirm;
+    @BindView(R.id.button_register) Button mRegisterButton;
+    @BindView(R.id.link_login) TextView mLoginLink;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -99,7 +98,7 @@ public class RegisterActivity extends BaseActivity {
         }
 
         // Create a new Firebase user with the given email and password
-        firebaseCreateUserWithEmailAndPassword(emailInput.getText().toString(), passwordInput.getText().toString());
+        firebaseCreateUserWithEmailAndPassword(mEmail.getText().toString(), mPassword.getText().toString());
     }
 
     @OnClick(R.id.link_login)
@@ -120,32 +119,32 @@ public class RegisterActivity extends BaseActivity {
 
     public boolean validateInput() {
         // Clear old error messages
-        nameInput.setError(null);
-        emailInput.setError(null);
-        passwordInput.setError(null);
-        passwordConfirmButton.setError(null);
+        mName.setError(null);
+        mEmail.setError(null);
+        mPassword.setError(null);
+        mPasswordConfirm.setError(null);
 
-        String name = this.nameInput.getText().toString();
+        String name = this.mName.getText().toString();
         if (name.isEmpty()) {
-            this.nameInput.setError(getString(R.string.error_input_name));
+            this.mName.setError(getString(R.string.error_input_name));
             return false;
         }
 
-        String email = this.emailInput.getText().toString();
+        String email = this.mEmail.getText().toString();
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            this.emailInput.setError(getString(R.string.error_input_email));
+            this.mEmail.setError(getString(R.string.error_input_email));
             return false;
         }
 
-        String password = passwordInput.getText().toString();
+        String password = mPassword.getText().toString();
         if (password.isEmpty() || password.length() < 6) {
-            passwordInput.setError(getString(R.string.error_input_password));
+            mPassword.setError(getString(R.string.error_input_password));
             return false;
         }
 
-        String password2 = passwordConfirmButton.getText().toString();
+        String password2 = mPasswordConfirm.getText().toString();
         if (!password2.equals(password)) {
-            passwordConfirmButton.setError(getString(R.string.error_input_password_confirm));
+            mPasswordConfirm.setError(getString(R.string.error_input_password_confirm));
             return false;
         }
 
@@ -153,12 +152,12 @@ public class RegisterActivity extends BaseActivity {
     }
 
     public void enableInput(boolean enabled) {
-        nameInput.setEnabled(enabled);
-        emailInput.setEnabled(enabled);
-        passwordInput.setEnabled(enabled);
-        passwordConfirmButton.setEnabled(enabled);
-        registerButton.setEnabled(enabled);
-        loginLink.setEnabled(enabled);
+        mName.setEnabled(enabled);
+        mEmail.setEnabled(enabled);
+        mPassword.setEnabled(enabled);
+        mPasswordConfirm.setEnabled(enabled);
+        mRegisterButton.setEnabled(enabled);
+        mLoginLink.setEnabled(enabled);
     }
 
     private class UserCreationResultListener implements OnCompleteListener<AuthResult> {
@@ -191,7 +190,7 @@ public class RegisterActivity extends BaseActivity {
             if (task.isSuccessful()) {
                 // Update the users profile to include the display name they gave and a default profile picture
                 UserProfileChangeRequest profileUpdateRequest = new UserProfileChangeRequest.Builder()
-                        .setDisplayName(nameInput.getText().toString())
+                        .setDisplayName(mName.getText().toString())
                         .setPhotoUri(task.getResult())
                         .build();
 

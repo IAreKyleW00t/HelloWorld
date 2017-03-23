@@ -40,12 +40,14 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
+        <!-- Logo -->
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="144dp"
             android:contentDescription="@string/desc_app_logo"
             android:src="@drawable/ic_smile" />
 
+        <!-- App name -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -56,6 +58,7 @@
             android:textSize="36sp"
             android:textStyle="bold" />
 
+        <!-- Name input -->
         <EditText
             android:id="@+id/input_name"
             android:layout_width="match_parent"
@@ -65,6 +68,7 @@
             android:hint="@string/hint_name"
             android:inputType="textPersonName" />
 
+        <!-- Email input -->
         <EditText
             android:id="@+id/input_email"
             android:layout_width="match_parent"
@@ -74,6 +78,7 @@
             android:hint="@string/hint_email"
             android:inputType="textEmailAddress" />
 
+        <!-- Password input -->
         <EditText
             android:id="@+id/input_password"
             android:layout_width="match_parent"
@@ -84,6 +89,7 @@
             android:hint="@string/hint_password"
             android:inputType="textPassword" />
 
+        <!-- Password confirm input -->
         <EditText
             android:id="@+id/input_password_confirm"
             android:layout_width="match_parent"
@@ -94,6 +100,7 @@
             android:hint="@string/hint_password_confirm"
             android:inputType="textPassword" />
 
+        <!-- Register button -->
         <Button
             android:id="@+id/button_register"
             android:layout_width="match_parent"
@@ -102,6 +109,7 @@
             android:layout_marginTop="8dp"
             android:text="@string/action_register" />
 
+        <!-- Login link -->
         <TextView
             android:id="@+id/link_login"
             android:layout_width="match_parent"
@@ -113,5 +121,4 @@
             android:textSize="16sp" />
 
     </LinearLayout>
-
 </ScrollView>

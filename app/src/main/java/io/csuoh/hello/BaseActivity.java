@@ -41,6 +41,7 @@ public class BaseActivity extends AppCompatActivity {
                     .title(title)
                     .content(R.string.please_wait)
                     .progress(true, 0)
+                    .cancelable(false)
                     .build();
         } else if (!mProgressDialog.isShowing()) {
             mProgressDialog.setTitle(title);

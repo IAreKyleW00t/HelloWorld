@@ -44,7 +44,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import butterknife.BindView;
@@ -61,11 +60,11 @@ public class LoginActivity extends BaseActivity {
             RC_REGISTER         = 69;
 
     // Activity elements
-    @BindView(R.id.input_email) EditText emailInput;
-    @BindView(R.id.input_password) EditText passwordInput;
-    @BindView(R.id.button_login_email) Button loginEmailButton;
-    @BindView(R.id.button_login_google) SignInButton loginGoogleButton;
-    @BindView(R.id.link_register) TextView registerLink;
+    @BindView(R.id.input_email) EditText mEmail;
+    @BindView(R.id.input_password) EditText mPassword;
+    @BindView(R.id.button_login_email) Button mEmailLoginButton;
+    @BindView(R.id.button_login_google) SignInButton mGoogleLoginButton;
+    @BindView(R.id.link_register) TextView mRegisterLink;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -127,8 +126,8 @@ public class LoginActivity extends BaseActivity {
                 // Check if the Activity was successful
                 if (resultCode == RESULT_OK) {
                     // Autofill the users email address and clear the previous password
-                    emailInput.setText(data.getStringExtra("firebase-email"));
-                    passwordInput.setText(null);
+                    mEmail.setText(data.getStringExtra("firebase-email"));
+                    mPassword.setText(null);
 
                     // Notify the user that their account was created successfully and that a confirmation email was sent to them
                     showSnackbar(R.string.msg_register_success, data.getStringExtra("firebase-email"));
@@ -157,7 +156,7 @@ public class LoginActivity extends BaseActivity {
         }
 
         // Log the user in with their Firebase email and password
-        firebaseAuthWithEmailAndPassword(emailInput.getText().toString(), passwordInput.getText().toString());
+        firebaseAuthWithEmailAndPassword(mEmail.getText().toString(), mPassword.getText().toString());
     }
 
     @OnClick(R.id.button_login_google)
@@ -195,30 +194,30 @@ public class LoginActivity extends BaseActivity {
 
     public boolean validateInput() {
         // Clear old input errors
-        emailInput.setError(null);
-        passwordInput.setError(null);
+        mEmail.setError(null);
+        mPassword.setError(null);
 
-        String email = emailInput.getText().toString();
+        String email = mEmail.getText().toString();
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailInput.setError(getString(R.string.error_input_email));
+            mEmail.setError(getString(R.string.error_input_email));
             return false;
-        } else emailInput.setError(null);
+        } else mEmail.setError(null);
 
-        String password = passwordInput.getText().toString();
+        String password = mPassword.getText().toString();
         if (password.isEmpty() || password.length() < 6) {
-            passwordInput.setError(getString(R.string.error_input_password));
+            mPassword.setError(getString(R.string.error_input_password));
             return false;
-        } else emailInput.setError(null);
+        } else mEmail.setError(null);
 
         return true;
     }
 
     public void enableInput(boolean enabled) {
-        emailInput.setEnabled(enabled);
-        passwordInput.setEnabled(enabled);
-        loginEmailButton.setEnabled(enabled);
-        loginGoogleButton.setEnabled(enabled);
-        registerLink.setEnabled(enabled);
+        mEmail.setEnabled(enabled);
+        mPassword.setEnabled(enabled);
+        mEmailLoginButton.setEnabled(enabled);
+        mGoogleLoginButton.setEnabled(enabled);
+        mRegisterLink.setEnabled(enabled);
     }
 
     private class GoogleConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
@@ -229,7 +228,7 @@ public class LoginActivity extends BaseActivity {
             showSnackbar(R.string.error_msg_google_play);
 
             // Clear the users password as an extra level of security
-            passwordInput.setText(null);
+            mPassword.setText(null);
         }
     }
 

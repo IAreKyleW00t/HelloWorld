@@ -44,6 +44,7 @@
             android:layout_marginBottom="8dp"
             android:orientation="horizontal">
 
+            <!-- Profile picture image -->
             <ImageView
                 android:id="@+id/image_user_picture"
                 android:layout_width="92dp"
@@ -57,11 +58,11 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <!-- Display name -->
                 <TextView
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/text_name" />
-
                 <EditText
                     android:id="@+id/input_user_name"
                     android:layout_width="fill_parent"
@@ -69,6 +70,7 @@
                     android:hint="@string/loading"
                     android:inputType="textPersonName" />
 
+                <!-- Change password link -->
                 <TextView
                     android:id="@+id/link_password_change"
                     android:layout_width="wrap_content"
@@ -81,15 +83,14 @@
                     android:visibility="gone" />
 
             </LinearLayout>
-
         </LinearLayout>
 
+        <!-- Email -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/text_email" />
-
         <TextView
             android:id="@+id/text_user_email"
             android:layout_width="match_parent"
@@ -102,12 +103,12 @@
             android:textColor="#000"
             android:textSize="18sp" />
 
+        <!-- User ID -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/text_user_id" />
-
         <TextView
             android:id="@+id/text_user_id"
             android:layout_width="match_parent"
@@ -120,12 +121,12 @@
             android:textColor="#000"
             android:textSize="18sp"/>
 
+        <!-- Provider -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/text_provider"/>
-
         <TextView
             android:id="@+id/text_user_provider"
             android:layout_width="match_parent"
@@ -144,11 +145,13 @@
             android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
+            <!-- Force button to right side -->
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
+            <!-- Save button -->
             <Button
                 android:id="@+id/button_save"
                 style="@style/Widget.AppCompat.Button.Colored"
@@ -157,7 +160,5 @@
                 android:text="@string/action_save" />
 
         </LinearLayout>
-
     </LinearLayout>
-
 </ScrollView>

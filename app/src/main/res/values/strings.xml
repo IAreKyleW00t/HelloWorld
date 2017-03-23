@@ -18,7 +18,7 @@
 <resources>
     <!-- Application related values -->
     <string name="app_name">HelloWorld</string>
-    <string name="app_version">0.11.0</string>
+    <string name="app_version">2017.323.0</string>
 
     <!-- Basic values -->
     <string name="please_wait">Please wait&#8230;</string>
@@ -49,6 +49,7 @@
     <string name="dialog_progress_upload">Uploading</string>
 
     <!-- Menu item values -->
+    <string name="menu_search">Search</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_signout">Logout</string>
 
@@ -66,6 +67,7 @@
     <string name="link_password_change">Change password</string>
 
     <!-- Hints for all inputs -->
+    <string name="hint_action_search">Search here</string>
     <string name="hint_name">Name</string>
     <string name="hint_email">Email</string>
     <string name="hint_password">Password</string>

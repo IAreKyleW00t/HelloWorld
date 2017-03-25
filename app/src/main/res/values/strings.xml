@@ -47,6 +47,7 @@
     <string name="dialog_progress_change_password">Changing password</string>
     <string name="dialog_progress_save">Saving</string>
     <string name="dialog_progress_upload">Uploading</string>
+    <string name="dialog_progress_loading_groups">Loading groups</string>
 
     <!-- Menu item values -->
     <string name="menu_search">Search</string>
@@ -74,12 +75,14 @@
     <string name="hint_password_current">Current password</string>
     <string name="hint_password_new">New password</string>
     <string name="hint_password_confirm">Confirm password</string>
+    <string name="hint_notifications">Enable notification sounds</string>
 
     <!-- Static text -->
     <string name="text_name">Display name</string>
     <string name="text_email">Email</string>
     <string name="text_user_id">User ID</string>
     <string name="text_provider">Provider</string>
+    <string name="text_notifications">Notifications</string>
 
     <!-- Image descriptions -->
     <string name="desc_app_logo">HelloWorld smiley</string>
@@ -103,6 +106,7 @@
     <string name="error_msg_reauthenticate">Failed to re-authenticate account. Please try again</string>
     <string name="error_msg_password_update">Failed to update password. Please try again</string>
     <string name="error_msg_profile_update">Failed to update profile. Please try again</string>
+    <string name="error_msg_groups_load">Failed to load available groups. Please try again</string>
 
     <!-- Errors relating to user input -->
     <string name="error_input_name">Please enter your display name</string>

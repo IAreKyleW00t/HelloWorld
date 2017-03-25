@@ -18,6 +18,7 @@ package io.csuoh.hello;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -35,10 +37,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
@@ -49,6 +53,7 @@ import butterknife.OnClick;
 
 public class SettingsActivity extends BaseActivity {
     public static final String TAG = SettingsActivity.class.getSimpleName();
+    public static final String PREFS_NAME = "HelloWorld";
 
     // Request codes
     private static final int
@@ -57,6 +62,7 @@ public class SettingsActivity extends BaseActivity {
     // Activity elements
     @BindView(R.id.image_user_picture) ImageView mProfilePicture;
     @BindView(R.id.input_user_name) EditText mName;
+    @BindView(R.id.check_notifications) Switch mEnableNotifications;
     @BindView(R.id.text_user_email) TextView mEmail;
     @BindView(R.id.link_password_change) TextView mChangePasswordLink;
     @BindView(R.id.text_user_id) TextView mUserId;
@@ -86,6 +92,7 @@ public class SettingsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         setTitle(R.string.title_settings);
+        showHomeUpButton(true);
         ButterKnife.bind(this);
 
         // Get the instances of all our Firebase objects
@@ -114,6 +121,7 @@ public class SettingsActivity extends BaseActivity {
                     firebaseUploadProfilePicture(data.getData());
                 }
                 break;
+
             default: // Default to super
                 super.onActivityResult(requestCode, resultCode, data);
         }
@@ -177,7 +185,8 @@ public class SettingsActivity extends BaseActivity {
 
                         // Automatically re-authenticate the current user before we change their password.
                         // This is required by Firebase after a certain period of time
-                        mAuth.getCurrentUser().reauthenticate(EmailAuthProvider.getCredential(mAuth.getCurrentUser().getEmail(), currentPassword))
+                        AuthCredential credential = EmailAuthProvider.getCredential(mAuth.getCurrentUser().getEmail(), currentPassword);
+                        mAuth.getCurrentUser().reauthenticate(credential)
                                 .addOnCompleteListener(SettingsActivity.this, new UserReauthenicateResultListener(newPassword));
                     }
                 })
@@ -198,6 +207,12 @@ public class SettingsActivity extends BaseActivity {
         enableInput(false);
         showProgressDialog(R.string.dialog_progress_save);
 
+        // Update local preferences
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        settings.edit()
+                .putBoolean("notifications", mEnableNotifications.isChecked())
+                .apply();
+
         // Update the current users profile based on what is editable in the settings Activity
         UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
                 .setDisplayName(mName.getText().toString())
@@ -212,12 +227,16 @@ public class SettingsActivity extends BaseActivity {
         showProgressDialog(R.string.dialog_progress_loading);
         enableInput(false);
 
+        // Load local preferences
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        mEnableNotifications.setChecked(settings.getBoolean("notifications", true));
+
         // Manually reload the current profile from Firebase just in case any changes were made
         mAuth.getCurrentUser().reload()
                 .addOnCompleteListener(this, mReloadUserProfileResultListener);
     }
 
-    private void firebaseUploadProfilePicture(final Uri file) {
+    private void firebaseUploadProfilePicture(Uri file) {
         // Display progress dialog and disable input
         enableInput(false);
         showProgressDialog(R.string.dialog_progress_upload);
@@ -246,10 +265,11 @@ public class SettingsActivity extends BaseActivity {
 
             // Check if reloading the users profile was successful
             // Even if this fails we can still display the current information, it just
-            // has the posibility of not being in sync (which is very unlikely)
+            // has the possibility of not being in sync (which is very unlikely)
             if (!task.isSuccessful() ) {
-                // Log the error internally before continuing
+                // Log the error before continuing
                 Log.e(TAG, "ReloadUserProfileResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
             }
 
             // Display the current users profile picture
@@ -303,8 +323,9 @@ public class SettingsActivity extends BaseActivity {
                 mAuth.getCurrentUser().updatePassword(password)
                         .addOnCompleteListener(SettingsActivity.this, mUserChangePasswordResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "UserReauthenicateResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_reauthenticate);
 
                 // Remove the progress dialog and enable input again
@@ -326,8 +347,9 @@ public class SettingsActivity extends BaseActivity {
                 hideProgressDialog();
                 enableInput(true);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "UserChangePasswordResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_password_update);
 
                 // Remove the progress dialog and enable input again
@@ -349,8 +371,9 @@ public class SettingsActivity extends BaseActivity {
                         .setValue(user.getDisplayName())
                         .addOnCompleteListener(SettingsActivity.this, mDatabaseUpdateProfileResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "UserProfileUpdateResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_profile_update);
 
                 // Remove the progress dialog and enable input again
@@ -367,13 +390,14 @@ public class SettingsActivity extends BaseActivity {
             if (task.isSuccessful()) {
                 // Update the users photo URL in the database
                 FirebaseUser user = mAuth.getCurrentUser();
-                mDatabase.getReference("users")
-                        .child(user.getUid()).child("photo")
+                mDatabase.getReference()
+                        .child("users").child(user.getUid()).child("photo")
                         .setValue(user.getPhotoUrl().toString())
                         .addOnCompleteListener(SettingsActivity.this, mDatabaseUpdatePhotoResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "UserProfilePhotoUpdateResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_profile_picture_update);
 
                 // Remove the progress dialog and enable input again
@@ -397,8 +421,9 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         public void onFailure(@NonNull Exception exception) {
-            // Log the error internally and notify the user
+            // Log the error and notify the user
             Log.e(TAG, "StorageUploadResultListener", exception);
+            FirebaseCrash.report(exception);
             showSnackbar(R.string.error_msg_profile_picture_update);
 
             // Remove the progress dialog and enable input again
@@ -417,8 +442,9 @@ public class SettingsActivity extends BaseActivity {
                 loadUserInfo();
                 showSnackbar(R.string.msg_profile_picture_update);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "DatabaseUpdatePhotoResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_profile_picture_update);
 
                 // Remove the progress dialog and enable input again
@@ -440,8 +466,9 @@ public class SettingsActivity extends BaseActivity {
                 hideProgressDialog();
                 enableInput(true);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "DatabaseUpdateProfileResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_profile_update);
 
                 // Remove the progress dialog and enable input again

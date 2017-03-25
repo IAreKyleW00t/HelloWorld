@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -39,6 +40,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -75,7 +77,7 @@ public class LoginActivity extends BaseActivity {
 
     // Listeners
     private UserLoginResultListener mUserLoginResultListener;
-    private SingleValueResultListener mSingleValueResultListener;
+    private DatabaseReadUserResultListener mDatabaseReadUserResultListener;
     private DatabaseUpdateResultListener mDatabaseUpdateResultListener;
     private EmailVerificationResultListener mEmailVerificationResultListener;
 
@@ -114,7 +116,7 @@ public class LoginActivity extends BaseActivity {
 
         // Initialize all of our Listeners
         mUserLoginResultListener = new UserLoginResultListener();
-        mSingleValueResultListener = new SingleValueResultListener();
+        mDatabaseReadUserResultListener = new DatabaseReadUserResultListener();
         mDatabaseUpdateResultListener = new DatabaseUpdateResultListener();
         mEmailVerificationResultListener = new EmailVerificationResultListener();
     }
@@ -125,7 +127,7 @@ public class LoginActivity extends BaseActivity {
             case RC_REGISTER: // Registration result
                 // Check if the Activity was successful
                 if (resultCode == RESULT_OK) {
-                    // Autofill the users email address and clear the previous password
+                    // Auto-fill the users email address and clear the previous password
                     mEmail.setText(data.getStringExtra("firebase-email"));
                     mPassword.setText(null);
 
@@ -184,8 +186,8 @@ public class LoginActivity extends BaseActivity {
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
         // Display progress dialog and disable input
-        enableInput(false);
         showProgressDialog(R.string.dialog_progress_login);
+        enableInput(false);
 
         // Start the login process with a Google account
         FirebaseAuth.getInstance().signInWithCredential(GoogleAuthProvider.getCredential(account.getIdToken(), null))
@@ -197,12 +199,14 @@ public class LoginActivity extends BaseActivity {
         mEmail.setError(null);
         mPassword.setError(null);
 
+        // Check email
         String email = mEmail.getText().toString();
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             mEmail.setError(getString(R.string.error_input_email));
             return false;
         } else mEmail.setError(null);
 
+        // Check password
         String password = mPassword.getText().toString();
         if (password.isEmpty() || password.length() < 6) {
             mPassword.setError(getString(R.string.error_input_password));
@@ -223,8 +227,9 @@ public class LoginActivity extends BaseActivity {
     private class GoogleConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
         @Override
         public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            // Log the error internally and notify the user
+            // Log the error and notify the user
             Log.e(TAG, connectionResult.getErrorMessage());
+            FirebaseCrash.report(new GoogleAuthException(connectionResult.getErrorMessage()));
             showSnackbar(R.string.error_msg_google_play);
 
             // Clear the users password as an extra level of security
@@ -240,10 +245,11 @@ public class LoginActivity extends BaseActivity {
                 // Check if the current user exists in the database
                 mDatabase.getReference("users")
                         .child(mAuth.getCurrentUser().getUid())
-                        .addListenerForSingleValueEvent(mSingleValueResultListener);
+                        .addListenerForSingleValueEvent(mDatabaseReadUserResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "UserLoginResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_login);
 
                 // Remove the progress dialog and enable input again
@@ -253,7 +259,7 @@ public class LoginActivity extends BaseActivity {
         }
     }
 
-    private class SingleValueResultListener implements ValueEventListener {
+    private class DatabaseReadUserResultListener implements ValueEventListener {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             // Check if the key exists in the database
@@ -283,8 +289,9 @@ public class LoginActivity extends BaseActivity {
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            // Log the error internally and notify the user
-            Log.e(TAG, "SingleValueResultListener", databaseError.toException());
+            // Log the error and notify the user
+            Log.e(TAG, "DatabaseReadUserResultListener", databaseError.toException());
+            FirebaseCrash.report(databaseError.toException());
             showSnackbar(R.string.error_msg_login);
 
             // Remove the progress dialog and enable input again
@@ -296,7 +303,7 @@ public class LoginActivity extends BaseActivity {
     private class DatabaseUpdateResultListener implements OnCompleteListener<Void> {
         @Override
         public void onComplete(@NonNull Task<Void> task) {
-            // Check if the user was successfuly written to the database
+            // Check if the user was successfully written to the database
             if (task.isSuccessful()) {
                 // Send a verification email (if needed)
                 if (!mAuth.getCurrentUser().isEmailVerified()) {
@@ -311,8 +318,9 @@ public class LoginActivity extends BaseActivity {
                     hideProgressDialog();
                 }
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "DatabaseUpdateResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_login);
 
                 // Remove the progress dialog and enable input again
@@ -334,8 +342,9 @@ public class LoginActivity extends BaseActivity {
                 // Notify the user that a verification email was sent to them
                 showSnackbar(R.string.msg_login_verify_email, mAuth.getCurrentUser().getEmail());
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "EmailVerificationResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_login);
 
                 // Remove the progress dialog and enable input again

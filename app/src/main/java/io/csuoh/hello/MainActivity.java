@@ -19,26 +19,44 @@ package io.csuoh.hello;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.crash.FirebaseCrash;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.csuoh.hello.adapters.GroupAdapter;
+import io.csuoh.hello.models.DatabaseGroup;
 
 public class MainActivity extends BaseActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     // Activity elements
-    @BindView(R.id.list_chats) RecyclerView mRecyclerView;
+    @BindView(R.id.list_active_groups) RecyclerView mRecyclerView;
 
     // Firebase
     private FirebaseAuth mAuth;
     private FirebaseDatabase mDatabase;
+
+    // Active groups
+    private List<DatabaseGroup> mGroups = new ArrayList<>();
+
+    // RecyclerView
+    private GroupAdapter mAdapter;
 
     public static Intent createIntent(Context context) {
         return new Intent(context, MainActivity.class);
@@ -63,6 +81,23 @@ public class MainActivity extends BaseActivity {
             // Notify the user that they were logged out
             showToast(R.string.msg_reauthenticate);
         }
+
+        // Display progress dialog
+        showProgressDialog(R.string.dialog_progress_loading_groups);
+
+        // Configure our Adapter for the RecyclerView
+        mAdapter = new GroupAdapter(mGroups);
+
+        // Configure our RecyclerView
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setAdapter(mAdapter);
+
+        // Attempt to parse the active groups of the current user
+        mDatabase.getReference()
+                .child("users").child(mAuth.getCurrentUser().getUid()).child("groups")
+                .addListenerForSingleValueEvent(new DatabaseReadUserGroupsListener());
     }
 
     @Override
@@ -74,6 +109,9 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_search: // Search
+                return true;
+
             case R.id.menu_settings: // Settings
                 startActivity(SettingsActivity.createIntent(MainActivity.this));
                 return true;
@@ -95,6 +133,75 @@ public class MainActivity extends BaseActivity {
 
     @OnClick(R.id.fab_group_add)
     public void onJoinGroup() {
+        // Start the Join Activity
         startActivity(JoinActivity.createIntent(this));
+    }
+
+    private class DatabaseReadUserGroupsListener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            // Check if the user is part of any groups
+            if (dataSnapshot.exists()) {
+                // Save the current group position in the list
+                int position = 0;
+
+                // Attempt to parse each group
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    mDatabase.getReference()
+                            .child("groups").child(snapshot.getKey())
+                            .addValueEventListener(new GroupItemValueUpdateListener(position++));
+                }
+            } else {
+                // Remove the progress dialog
+                hideProgressDialog();
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            // Log the error and notify the user
+            Log.e(TAG, "DatabaseReadUserGroupsListener", databaseError.toException());
+            FirebaseCrash.report(databaseError.toException());
+            showSnackbar(R.string.error_msg_groups_load);
+
+            // Remove the progress dialog
+            hideProgressDialog();
+        }
+    }
+
+    private class GroupItemValueUpdateListener implements ValueEventListener {
+        private final int position;
+
+        private GroupItemValueUpdateListener(final int position) {
+            this.position = position;
+        }
+
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            // Save and add group to the list
+            DatabaseGroup group = dataSnapshot.getValue(DatabaseGroup.class);
+            if (position < mGroups.size()) { // Update group
+                mGroups.set(position, group);
+            } else { // Add new group
+                mGroups.add(group);
+            }
+
+            // Tell the Adapter new data was added and/or updated
+            mAdapter.notifyDataSetChanged();
+
+            // Remove the progress dialog
+            hideProgressDialog();
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            // Log the error and notify the user
+            Log.e(TAG, "GroupItemValueUpdateListener", databaseError.toException());
+            FirebaseCrash.report(databaseError.toException());
+            showSnackbar(R.string.error_msg_groups_load);
+
+            // Remove the progress dialog
+            hideProgressDialog();
+        }
     }
 }

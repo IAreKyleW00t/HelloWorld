@@ -24,11 +24,11 @@
     android:layout_height="match_parent"
     tools:context="io.csuoh.hello.MainActivity">
 
-    <!-- Chats list -->
+    <!-- Active groups list -->
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_chats"
+        android:id="@+id/list_active_groups"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:scrollbars="vertical">
     </android.support.v7.widget.RecyclerView>
 

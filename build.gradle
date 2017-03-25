@@ -9,6 +9,9 @@ buildscript {
 
         // Google Services
         classpath 'com.google.gms:google-services:3.0.0'
+
+        // Firebase
+        classpath 'com.google.firebase:firebase-plugins:1.0.5'
     }
 }
 

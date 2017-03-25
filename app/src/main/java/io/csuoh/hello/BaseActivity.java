@@ -20,7 +20,9 @@ import android.os.Bundle;
 import android.support.annotation.MainThread;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -64,6 +66,14 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     @MainThread
+    public final void showHomeUpButton(boolean enabled) {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(enabled);
+        }
+    }
+
+    @MainThread
     public final void showToast(@StringRes int strResource) {
         Toast.makeText(this, strResource, Toast.LENGTH_LONG).show();
     }
@@ -86,6 +96,18 @@ public class BaseActivity extends AppCompatActivity {
         View view = getCurrentFocus();
         if (view != null) {
             Snackbar.make(getCurrentFocus(), getString(strResource, args), Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 }

@@ -33,6 +33,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 
@@ -124,24 +125,28 @@ public class RegisterActivity extends BaseActivity {
         mPassword.setError(null);
         mPasswordConfirm.setError(null);
 
+        // Check name
         String name = this.mName.getText().toString();
         if (name.isEmpty()) {
             this.mName.setError(getString(R.string.error_input_name));
             return false;
         }
 
+        // Check email
         String email = this.mEmail.getText().toString();
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             this.mEmail.setError(getString(R.string.error_input_email));
             return false;
         }
 
+        // Check password
         String password = mPassword.getText().toString();
         if (password.isEmpty() || password.length() < 6) {
             mPassword.setError(getString(R.string.error_input_password));
             return false;
         }
 
+        // Check confirmation password
         String password2 = mPasswordConfirm.getText().toString();
         if (!password2.equals(password)) {
             mPasswordConfirm.setError(getString(R.string.error_input_password_confirm));
@@ -167,13 +172,13 @@ public class RegisterActivity extends BaseActivity {
             if (task.isSuccessful()) {
                 // Get the URI of the default profile picture
                 mStorage.getReferenceFromUrl("gs://" + getString(R.string.firebase_bucket))
-                        .child("images")
-                        .child("default_profilePicture")
+                        .child("images").child("default_profilePicture")
                         .getDownloadUrl()
                         .addOnCompleteListener(RegisterActivity.this, mStorageUriResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "UserCreationResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
@@ -186,7 +191,7 @@ public class RegisterActivity extends BaseActivity {
     private class StorageUriResultListener implements OnCompleteListener<Uri> {
         @Override
         public void onComplete(@NonNull Task<Uri> task) {
-            // Check if getting the download URI was successfull
+            // Check if getting the download URI was successful
             if (task.isSuccessful()) {
                 // Update the users profile to include the display name they gave and a default profile picture
                 UserProfileChangeRequest profileUpdateRequest = new UserProfileChangeRequest.Builder()
@@ -197,8 +202,9 @@ public class RegisterActivity extends BaseActivity {
                 mAuth.getCurrentUser().updateProfile(profileUpdateRequest)
                         .addOnCompleteListener(RegisterActivity.this, mUserProfileUpdateResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "StorageUriResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
@@ -215,13 +221,14 @@ public class RegisterActivity extends BaseActivity {
             if (task.isSuccessful()) {
                 // Add the user to the database
                 FirebaseUser user = mAuth.getCurrentUser();
-                mDatabase.getReference("users")
-                        .child(user.getUid())
+                mDatabase.getReference()
+                        .child("users").child(user.getUid())
                         .setValue(new DatabaseUser(user.getDisplayName(), user.getPhotoUrl().toString(), new HashMap<String, Boolean>()))
                         .addOnCompleteListener(RegisterActivity.this, mDatabaseUpdateResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "UserProfileUpdateResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
@@ -234,14 +241,15 @@ public class RegisterActivity extends BaseActivity {
     private class DatabaseUpdateResultListener implements OnCompleteListener<Void> {
         @Override
         public void onComplete(@NonNull Task<Void> task) {
-            // Check if the user was successfuly written to the database
+            // Check if the user was successfully written to the database
             if (task.isSuccessful()) {
                 // Send a verification email
                 mAuth.getCurrentUser().sendEmailVerification()
                         .addOnCompleteListener(RegisterActivity.this, mEmailVerificationResultListener);
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "DatabaseUpdateResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again
@@ -266,8 +274,9 @@ public class RegisterActivity extends BaseActivity {
                 // Remove the progress dialog since it is no longer visible
                 hideProgressDialog();
             } else {
-                // Log the error internally and notify the user
+                // Log the error and notify the user
                 Log.e(TAG, "EmailVerificationResultListener", task.getException());
+                FirebaseCrash.report(task.getException());
                 showSnackbar(R.string.error_msg_register);
 
                 // Remove the progress dialog and enable input again

@@ -33,7 +33,6 @@
             android:id="@+id/text_group_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
 

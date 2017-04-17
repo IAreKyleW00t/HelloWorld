@@ -84,7 +84,7 @@ public class JoinActivity extends BaseActivity {
         showProgressDialog(R.string.dialog_progress_loading_groups);
 
         // Configure our Adapter for the RecyclerView
-        mAdapter = new GroupJoinAdapter(mGroups);
+        mAdapter = new GroupJoinAdapter(this, mGroups);
 
         // Configure our RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -95,31 +95,33 @@ public class JoinActivity extends BaseActivity {
         // Attempt to read groups from the database
         mDatabase.getReference()
                 .child("groups")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        // Read and parse each group from the database
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            mGroups.add(snapshot.getValue(DatabaseGroup.class));
-                        }
+                .addListenerForSingleValueEvent(new DatabaseReadGroupsListener());
+    }
 
-                        // Tell the Adapter new data was added
-                        mAdapter.notifyDataSetChanged();
+    public class DatabaseReadGroupsListener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            // Read and parse each group from the database
+            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                mGroups.add(snapshot.getValue(DatabaseGroup.class));
+            }
 
-                        // Remove the progress dialog
-                        hideProgressDialog();
-                    }
+            // Tell the Adapter new data was added
+            mAdapter.notifyDataSetChanged();
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        // Log the error and notify the user
-                        Log.e(TAG, "SingleValueEvent", databaseError.toException());
-                        FirebaseCrash.report(databaseError.toException());
-                        showSnackbar(R.string.error_msg_groups_load);
+            // Remove the progress dialog
+            hideProgressDialog();
+        }
 
-                        // Remove the progress dialog
-                        hideProgressDialog();
-                    }
-                });
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            // Log the error and notify the user
+            Log.e(TAG, "SingleValueEvent", databaseError.toException());
+            FirebaseCrash.report(databaseError.toException());
+            showSnackbar(R.string.error_msg_groups_load);
+
+            // Remove the progress dialog
+            hideProgressDialog();
+        }
     }
 }

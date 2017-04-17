@@ -18,8 +18,11 @@ package io.csuoh.hello.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import org.parceler.Parcel;
+
 import java.util.Map;
 
+@Parcel
 @IgnoreExtraProperties
 public class DatabaseUser {
     public String name, photo;

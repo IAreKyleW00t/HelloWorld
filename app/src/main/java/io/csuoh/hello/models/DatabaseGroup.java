@@ -18,18 +18,24 @@ package io.csuoh.hello.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import org.parceler.Parcel;
+
 import java.util.Map;
 
+@Parcel
 @IgnoreExtraProperties
 public class DatabaseGroup {
-    public String name, description, last_message, timestamp;
+    public int id;
+    public String name, description, last_message;
+    public long timestamp;
     public Map<String, Boolean> users;
 
     public DatabaseGroup() {
         // Default constructor required for calls to DataSnapshot.getValue(DatabaseGroup.class)
     }
 
-    public DatabaseGroup(String name, String description, String last_message, String timestamp, Map<String, Boolean> users) {
+    public DatabaseGroup(int id, String name, String description, String last_message, long timestamp, Map<String, Boolean> users) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.last_message = last_message;

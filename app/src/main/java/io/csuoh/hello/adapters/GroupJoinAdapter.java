@@ -16,6 +16,7 @@
  */
 package io.csuoh.hello.adapters;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -24,15 +25,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import io.csuoh.hello.R;
 import io.csuoh.hello.models.DatabaseGroup;
 
 public class GroupJoinAdapter extends RecyclerAdapter<DatabaseGroup, GroupJoinAdapter.ViewHolder> {
+    private final Context mContext;
 
-    public GroupJoinAdapter(@NonNull final List<DatabaseGroup> objects) {
+    public GroupJoinAdapter(@NonNull Context context, @NonNull final List<DatabaseGroup> objects) {
         super(objects);
+        mContext = context;
     }
 
     @Override
@@ -42,6 +48,9 @@ public class GroupJoinAdapter extends RecyclerAdapter<DatabaseGroup, GroupJoinAd
 
     @Override
     public void onBindViewHolder(GroupJoinAdapter.ViewHolder holder, int position) {
+        // Timestamp format
+        SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm aa", Locale.US);
+
         // Save current item
         DatabaseGroup group = mList.get(position);
 
@@ -59,10 +68,12 @@ public class GroupJoinAdapter extends RecyclerAdapter<DatabaseGroup, GroupJoinAd
         holder.mName.setText(group.name);
         holder.mDescription.setText(group.description);
         holder.mUsers.setText(users);
-        holder.mTimestamp.setText(group.timestamp);
+        if (group.last_message != null && !group.last_message.isEmpty()) {
+            holder.mTimestamp.setText(dateFormat.format(new Date(group.timestamp)));
+        }
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final TextView mName, mDescription, mUsers, mTimestamp;
 
         ViewHolder(View view) {
@@ -80,9 +91,9 @@ public class GroupJoinAdapter extends RecyclerAdapter<DatabaseGroup, GroupJoinAd
 
         @Override
         public void onClick(View v) {
-            // TODO: Join and open group chat
             int position = getAdapterPosition();
-            Log.d("GroupAdapter", "POSITION = " + position + "\n" + v.toString());
+            DatabaseGroup group = mList.get(position);
+            Log.d("GroupAdapter", "POSITION = " + position + "\nID = " + group.id);
         }
     }
 }

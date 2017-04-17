@@ -82,11 +82,8 @@ public class MainActivity extends BaseActivity {
             showToast(R.string.msg_reauthenticate);
         }
 
-        // Display progress dialog
-        showProgressDialog(R.string.dialog_progress_loading_groups);
-
         // Configure our Adapter for the RecyclerView
-        mAdapter = new GroupAdapter(mGroups);
+        mAdapter = new GroupAdapter(this, mGroups);
 
         // Configure our RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -188,9 +185,6 @@ public class MainActivity extends BaseActivity {
 
             // Tell the Adapter new data was added and/or updated
             mAdapter.notifyDataSetChanged();
-
-            // Remove the progress dialog
-            hideProgressDialog();
         }
 
         @Override
@@ -199,9 +193,6 @@ public class MainActivity extends BaseActivity {
             Log.e(TAG, "GroupItemValueUpdateListener", databaseError.toException());
             FirebaseCrash.report(databaseError.toException());
             showSnackbar(R.string.error_msg_groups_load);
-
-            // Remove the progress dialog
-            hideProgressDialog();
         }
     }
 }

@@ -18,15 +18,21 @@ package io.csuoh.hello.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import org.parceler.Parcel;
+
+@Parcel
 @IgnoreExtraProperties
 public class DatabaseMessage {
-    public String user, photo, message, timestamp;
+    public int id;
+    public String user, photo, message;
+    public long timestamp;
 
     public DatabaseMessage() {
         // Default constructor required for calls to DataSnapshot.getValue(DatabaseMessage.class)
     }
 
-    public DatabaseMessage(String user, String photo, String message, String timestamp) {
+    public DatabaseMessage(int id, String user, String photo, String message, long timestamp) {
+        this.id = id;
         this.user = user;
         this.photo = photo;
         this.message = message;

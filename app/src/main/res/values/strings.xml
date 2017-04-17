@@ -18,7 +18,7 @@
 <resources>
     <!-- Application related values -->
     <string name="app_name">HelloWorld</string>
-    <string name="app_version">2017.323.0</string>
+    <string name="app_version">2017.417.0</string>
 
     <!-- Basic values -->
     <string name="please_wait">Please wait&#8230;</string>
@@ -82,6 +82,7 @@
     <string name="text_email">Email</string>
     <string name="text_user_id">User ID</string>
     <string name="text_provider">Provider</string>
+    <string name="text_version">App version</string>
     <string name="text_notifications">Notifications</string>
 
     <!-- Image descriptions -->

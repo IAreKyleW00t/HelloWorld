@@ -20,15 +20,16 @@ import com.google.firebase.database.IgnoreExtraProperties;
 
 import org.parceler.Parcel;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Parcel
 @IgnoreExtraProperties
 public class DatabaseGroup {
-    public int id;
-    public String name, description, last_message;
-    public long timestamp;
-    public Map<String, Boolean> users;
+    public int id = -1;
+    public String name = null, description = null, last_message = null;
+    public long timestamp =  -1L;
+    public Map<String, Boolean> users = new HashMap<>();
 
     public DatabaseGroup() {
         // Default constructor required for calls to DataSnapshot.getValue(DatabaseGroup.class)

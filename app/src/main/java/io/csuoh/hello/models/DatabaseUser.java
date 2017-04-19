@@ -20,13 +20,14 @@ import com.google.firebase.database.IgnoreExtraProperties;
 
 import org.parceler.Parcel;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Parcel
 @IgnoreExtraProperties
 public class DatabaseUser {
-    public String name, photo;
-    public Map<String, Boolean> groups;
+    public String name = null, photo = null;
+    public Map<String, Boolean> groups = new HashMap<>();
 
     public DatabaseUser() {
         // Default constructor required for calls to DataSnapshot.getValue(DatabaseUser.class)

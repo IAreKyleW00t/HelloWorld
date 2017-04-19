@@ -16,10 +16,9 @@
  */
 package io.csuoh.hello.adapters;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,14 +30,15 @@ import java.util.List;
 import java.util.Locale;
 
 import io.csuoh.hello.R;
+import io.csuoh.hello.listeners.OnRecyclerClickListener;
 import io.csuoh.hello.models.DatabaseGroup;
 
 public class GroupJoinAdapter extends RecyclerAdapter<DatabaseGroup, GroupJoinAdapter.ViewHolder> {
-    private final Context mContext;
+    private final OnRecyclerClickListener mClickListener;
 
-    public GroupJoinAdapter(@NonNull Context context, @NonNull final List<DatabaseGroup> objects) {
+    public GroupJoinAdapter(@NonNull List<DatabaseGroup> objects, @Nullable OnRecyclerClickListener clickListener) {
         super(objects);
-        mContext = context;
+        mClickListener = clickListener;
     }
 
     @Override
@@ -91,9 +91,9 @@ public class GroupJoinAdapter extends RecyclerAdapter<DatabaseGroup, GroupJoinAd
 
         @Override
         public void onClick(View v) {
-            int position = getAdapterPosition();
-            DatabaseGroup group = mList.get(position);
-            Log.d("GroupAdapter", "POSITION = " + position + "\nID = " + group.id);
+            if (mClickListener != null) {
+                mClickListener.onClick(getAdapterPosition());
+            }
         }
     }
 }

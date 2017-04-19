@@ -28,10 +28,13 @@ import android.view.MenuItem;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.crash.FirebaseCrash;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.csuoh.hello.adapters.GroupAdapter;
+import io.csuoh.hello.listeners.OnRecyclerClickListener;
 import io.csuoh.hello.models.DatabaseGroup;
 
 public class MainActivity extends BaseActivity {
@@ -83,7 +87,24 @@ public class MainActivity extends BaseActivity {
         }
 
         // Configure our Adapter for the RecyclerView
-        mAdapter = new GroupAdapter(this, mGroups);
+        mAdapter = new GroupAdapter(mGroups, new OnRecyclerClickListener() {
+            @Override
+            public void onClick(int position) {
+                // Save selected Group
+                DatabaseGroup group = mGroups.get(position);
+
+                // Add the new Group into the Bundle of extra data
+                Bundle extras = new Bundle();
+                extras.putParcelable("group", Parcels.wrap(DatabaseGroup.class, group));
+
+                // Create a new Intent with Bundle data
+                Intent intent = GroupActivity.createIntent(MainActivity.this)
+                        .putExtras(extras);
+
+                // Start GroupActivity
+                startActivity(intent);
+            }
+        });
 
         // Configure our RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -91,10 +112,10 @@ public class MainActivity extends BaseActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
 
-        // Attempt to parse the active groups of the current user
+        // Listen for any changes to the current users active groups
         mDatabase.getReference()
                 .child("users").child(mAuth.getCurrentUser().getUid()).child("groups")
-                .addListenerForSingleValueEvent(new DatabaseReadUserGroupsListener());
+                .addChildEventListener(new DatabaseUserGroupsListener());
     }
 
     @Override
@@ -134,63 +155,82 @@ public class MainActivity extends BaseActivity {
         startActivity(JoinActivity.createIntent(this));
     }
 
-    private class DatabaseReadUserGroupsListener implements ValueEventListener {
+    private class DatabaseUserGroupsListener implements ChildEventListener {
         @Override
-        public void onDataChange(DataSnapshot dataSnapshot) {
-            // Check if the user is part of any groups
-            if (dataSnapshot.exists()) {
-                // Save the current group position in the list
-                int position = 0;
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            mDatabase.getReference()
+                    .child("groups").child(dataSnapshot.getKey())
+                    .addValueEventListener(new GroupItemUpdatedListener());
+        }
 
-                // Attempt to parse each group
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    mDatabase.getReference()
-                            .child("groups").child(snapshot.getKey())
-                            .addValueEventListener(new GroupItemValueUpdateListener(position++));
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            int groupId = Integer.parseInt(dataSnapshot.getKey());
+
+            int i = 0;
+            for (DatabaseGroup group : mGroups) {
+                if (group.id == groupId) {
+                    // Remove Group from list and Adapter
+                    mGroups.remove(i);
+                    mAdapter.notifyItemRemoved(i);
+                    break;
                 }
-            } else {
-                // Remove the progress dialog
-                hideProgressDialog();
+                i++;
             }
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            // Add or remove the Group based on the value (true/false)
+            if (dataSnapshot.getValue(Boolean.class)) {
+                onChildAdded(dataSnapshot, s);
+            } else {
+                onChildRemoved(dataSnapshot);
+            }
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            // Nothing to do.
         }
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
             // Log the error and notify the user
-            Log.e(TAG, "DatabaseReadUserGroupsListener", databaseError.toException());
+            Log.e(TAG, "DatabaseUserGroupsListener", databaseError.toException());
             FirebaseCrash.report(databaseError.toException());
             showSnackbar(R.string.error_msg_groups_load);
-
-            // Remove the progress dialog
-            hideProgressDialog();
         }
     }
 
-    private class GroupItemValueUpdateListener implements ValueEventListener {
-        private final int position;
-
-        private GroupItemValueUpdateListener(final int position) {
-            this.position = position;
-        }
-
+    private class GroupItemUpdatedListener implements ValueEventListener {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
-            // Save and add group to the list
+            // Save the Group and current user ID
             DatabaseGroup group = dataSnapshot.getValue(DatabaseGroup.class);
-            if (position < mGroups.size()) { // Update group
-                mGroups.set(position, group);
-            } else { // Add new group
+            String userId = mAuth.getCurrentUser().getUid();
+
+            if (mGroups.contains(group) && group.users.containsKey(userId)) { // Update group
+                int i = 0;
+                for (DatabaseGroup g : mGroups) {
+                    if (g.id == group.id) {
+                        mGroups.set(i, group);
+                        break;
+                    }
+                    i++;
+                }
+            } else if (!mGroups.contains(group) && group.users.containsKey(userId)) { // Add group
                 mGroups.add(group);
             }
 
-            // Tell the Adapter new data was added and/or updated
+            // Notify the Adapter that data was updated
             mAdapter.notifyDataSetChanged();
         }
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
             // Log the error and notify the user
-            Log.e(TAG, "GroupItemValueUpdateListener", databaseError.toException());
+            Log.e(TAG, "GroupItemAddListener", databaseError.toException());
             FirebaseCrash.report(databaseError.toException());
             showSnackbar(R.string.error_msg_groups_load);
         }

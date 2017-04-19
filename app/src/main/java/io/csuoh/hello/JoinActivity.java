@@ -19,11 +19,14 @@ package io.csuoh.hello;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.DataSnapshot;
@@ -31,12 +34,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.parceler.Parcels;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.csuoh.hello.adapters.GroupJoinAdapter;
+import io.csuoh.hello.listeners.OnRecyclerClickListener;
 import io.csuoh.hello.models.DatabaseGroup;
 
 public class JoinActivity extends BaseActivity {
@@ -84,7 +90,19 @@ public class JoinActivity extends BaseActivity {
         showProgressDialog(R.string.dialog_progress_loading_groups);
 
         // Configure our Adapter for the RecyclerView
-        mAdapter = new GroupJoinAdapter(this, mGroups);
+        mAdapter = new GroupJoinAdapter(mGroups, new OnRecyclerClickListener() {
+            @Override
+            public void onClick(int position) {
+                // Save selected group
+                DatabaseGroup group = mGroups.get(position);
+
+                // Add the group to the current user
+                mDatabase.getReference()
+                        .child("users").child(mAuth.getCurrentUser().getUid()).child("groups")
+                        .child(String.valueOf(group.id)).setValue(true)
+                        .addOnCompleteListener(new DatabaseUserAddGroupListener(group));
+            }
+        });
 
         // Configure our RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -98,7 +116,7 @@ public class JoinActivity extends BaseActivity {
                 .addListenerForSingleValueEvent(new DatabaseReadGroupsListener());
     }
 
-    public class DatabaseReadGroupsListener implements ValueEventListener {
+    private class DatabaseReadGroupsListener implements ValueEventListener {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
             // Read and parse each group from the database
@@ -122,6 +140,69 @@ public class JoinActivity extends BaseActivity {
 
             // Remove the progress dialog
             hideProgressDialog();
+        }
+    }
+
+    private class DatabaseUserAddGroupListener implements OnCompleteListener<Void> {
+        private final DatabaseGroup mGroup;
+
+        public DatabaseUserAddGroupListener(final DatabaseGroup group) {
+            mGroup = group;
+        }
+
+        @Override
+        public void onComplete(@NonNull Task<Void> task) {
+            // Check if the group was added to the user successfully
+            if (task.isSuccessful()) {
+                // Add the user to the current group
+                mDatabase.getReference()
+                        .child("groups").child(String.valueOf(mGroup.id)).child("users")
+                        .child(mAuth.getCurrentUser().getUid()).setValue(true)
+                        .addOnCompleteListener(new DatabaseGroupAddUserListener(mGroup));
+            } else {
+                // Log the error and notify the user
+                Log.e(TAG, "DatabaseUserGroupAddListener", task.getException());
+                FirebaseCrash.report(task.getException());
+                showSnackbar(R.string.error_msg_group_join);
+
+                // Remove the progress dialog
+                hideProgressDialog();
+            }
+        }
+    }
+
+    private class DatabaseGroupAddUserListener implements OnCompleteListener<Void> {
+        private final DatabaseGroup mGroup;
+
+        public DatabaseGroupAddUserListener(final DatabaseGroup group) {
+            mGroup = group;
+        }
+
+        @Override
+        public void onComplete(@NonNull Task<Void> task) {
+            // Check if the user was added to the group successfully
+            if (task.isSuccessful()) {
+
+                // Add the new Group into the Bundle of extra data
+                Bundle extras = new Bundle();
+                extras.putParcelable("group", Parcels.wrap(DatabaseGroup.class, mGroup));
+
+                // Create a new Intent with Bundle data
+                Intent intent = GroupActivity.createIntent(JoinActivity.this)
+                        .putExtras(extras);
+
+                // Start GroupActivity
+                startActivity(intent);
+                finish();
+            } else {
+                // Log the error and notify the user
+                Log.e(TAG, "DatabaseGroupUserAddListener", task.getException());
+                FirebaseCrash.report(task.getException());
+                showSnackbar(R.string.error_msg_group_join);
+
+                // Remove the progress dialog
+                hideProgressDialog();
+            }
         }
     }
 }

@@ -16,8 +16,12 @@
  */
 package io.csuoh.hello;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -48,6 +52,7 @@ import io.csuoh.hello.models.DatabaseGroup;
 
 public class MainActivity extends BaseActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
+    public static final String PREFS_NAME = "HelloWorld";
 
     // Activity elements
     @BindView(R.id.list_active_groups) RecyclerView mRecyclerView;
@@ -56,11 +61,28 @@ public class MainActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     private FirebaseDatabase mDatabase;
 
-    // Active groups
-    private List<DatabaseGroup> mGroups = new ArrayList<>();
+    // RecyclerView elements
+    private List<DatabaseGroup> mGroups = new ArrayList<DatabaseGroup>() {
+        @Override
+        public boolean contains(Object o) {
+            if (o instanceof DatabaseGroup) {
+                DatabaseGroup group = (DatabaseGroup) o;
 
-    // RecyclerView
+                for (DatabaseGroup g : this) {
+                    if (g.id == group.id) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    };
     private GroupAdapter mAdapter;
+
+    // Listeners
+    private GroupItemClickListener mGroupItemClickListener;
+    private DatabaseUserGroupsListener mDatabaseUserGroupsListener;
+    private GroupItemUpdatedListener mGroupItemUpdatedListener;
 
     public static Intent createIntent(Context context) {
         return new Intent(context, MainActivity.class);
@@ -86,25 +108,13 @@ public class MainActivity extends BaseActivity {
             showToast(R.string.msg_reauthenticate);
         }
 
+        // Initialize all of our Listeners
+        mGroupItemClickListener = new GroupItemClickListener();
+        mDatabaseUserGroupsListener = new DatabaseUserGroupsListener();
+        mGroupItemUpdatedListener = new GroupItemUpdatedListener();
+
         // Configure our Adapter for the RecyclerView
-        mAdapter = new GroupAdapter(mGroups, new OnRecyclerClickListener() {
-            @Override
-            public void onClick(int position) {
-                // Save selected Group
-                DatabaseGroup group = mGroups.get(position);
-
-                // Add the new Group into the Bundle of extra data
-                Bundle extras = new Bundle();
-                extras.putParcelable("group", Parcels.wrap(DatabaseGroup.class, group));
-
-                // Create a new Intent with Bundle data
-                Intent intent = GroupActivity.createIntent(MainActivity.this)
-                        .putExtras(extras);
-
-                // Start GroupActivity
-                startActivity(intent);
-            }
-        });
+        mAdapter = new GroupAdapter(mGroups, mGroupItemClickListener);
 
         // Configure our RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -112,10 +122,10 @@ public class MainActivity extends BaseActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
 
-        // Listen for any changes to the current users active groups
+        // Listen for any changes to the groups the current user is in
         mDatabase.getReference()
                 .child("users").child(mAuth.getCurrentUser().getUid()).child("groups")
-                .addChildEventListener(new DatabaseUserGroupsListener());
+                .addChildEventListener(mDatabaseUserGroupsListener);
     }
 
     @Override
@@ -155,12 +165,31 @@ public class MainActivity extends BaseActivity {
         startActivity(JoinActivity.createIntent(this));
     }
 
+    private class GroupItemClickListener implements OnRecyclerClickListener {
+        @Override
+        public void onClick(int position) {
+            // Save selected Group
+            DatabaseGroup group = mGroups.get(position);
+
+            // Add the Group into the Bundle data
+            Bundle extras = new Bundle();
+            extras.putParcelable("group", Parcels.wrap(DatabaseGroup.class, group));
+
+            // Create a new Intent with the extra Bundle data
+            Intent intent = GroupActivity.createIntent(MainActivity.this)
+                    .putExtras(extras);
+
+            // Start the GroupActivity with the specified Group
+            startActivity(intent);
+        }
+    }
+
     private class DatabaseUserGroupsListener implements ChildEventListener {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             mDatabase.getReference()
                     .child("groups").child(dataSnapshot.getKey())
-                    .addValueEventListener(new GroupItemUpdatedListener());
+                    .addValueEventListener(mGroupItemUpdatedListener);
         }
 
         @Override
@@ -219,6 +248,34 @@ public class MainActivity extends BaseActivity {
                     }
                     i++;
                 }
+
+                // Send notification if a group is updated, aka: new message.
+                SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+                if (settings.getBoolean("notifications", true) && !inForeground) {
+                    // Add the Group into the Bundle data
+                    Bundle extras = new Bundle();
+                    extras.putParcelable("group", Parcels.wrap(DatabaseGroup.class, group));
+
+                    // Create a new Intent with the extra Bundle data
+                    Intent intent = GroupActivity.createIntent(MainActivity.this)
+                            .putExtras(extras);
+
+                    // Create pending Intent
+                    PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, (int) System.currentTimeMillis(), intent, 0);
+
+                    // Create notification
+                    Notification notification = new Notification.Builder(MainActivity.this)
+                            .setContentTitle("New Message")
+                            .setContentText(group.last_message)
+                            .setSmallIcon(R.drawable.ic_smile)
+                            .setContentIntent(pendingIntent)
+                            .setAutoCancel(true)
+                            .build();
+
+                    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    notificationManager.notify(NEW_MESSAGE_NOTIFICATION_ID, notification);
+                }
+
             } else if (!mGroups.contains(group) && group.users.containsKey(userId)) { // Add group
                 mGroups.add(group);
             }
@@ -230,7 +287,7 @@ public class MainActivity extends BaseActivity {
         @Override
         public void onCancelled(DatabaseError databaseError) {
             // Log the error and notify the user
-            Log.e(TAG, "GroupItemAddListener", databaseError.toException());
+            Log.e(TAG, "GroupItemUpdatedListener", databaseError.toException());
             FirebaseCrash.report(databaseError.toException());
             showSnackbar(R.string.error_msg_groups_load);
         }

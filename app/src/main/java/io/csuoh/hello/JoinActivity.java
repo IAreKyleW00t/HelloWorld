@@ -55,11 +55,13 @@ public class JoinActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     private FirebaseDatabase mDatabase;
 
-    // Groups
+    // RecyclerView elements
     private List<DatabaseGroup> mGroups = new ArrayList<>();
-
-    // RecyclerView
     private GroupJoinAdapter mAdapter;
+
+    // Listeners
+    private GroupItemClickListener mGroupItemClickListener;
+    private DatabaseReadGroupsListener mDatabaseReadGroupsListener;
 
     public static Intent createIntent(Context context) {
         return new Intent(context, JoinActivity.class);
@@ -86,23 +88,12 @@ public class JoinActivity extends BaseActivity {
             showToast(R.string.msg_reauthenticate);
         }
 
-        // Display progress dialog
-        showProgressDialog(R.string.dialog_progress_loading_groups);
+        // Initialize all of our Listeners
+        mGroupItemClickListener = new GroupItemClickListener();
+        mDatabaseReadGroupsListener = new DatabaseReadGroupsListener();
 
         // Configure our Adapter for the RecyclerView
-        mAdapter = new GroupJoinAdapter(mGroups, new OnRecyclerClickListener() {
-            @Override
-            public void onClick(int position) {
-                // Save selected group
-                DatabaseGroup group = mGroups.get(position);
-
-                // Add the group to the current user
-                mDatabase.getReference()
-                        .child("users").child(mAuth.getCurrentUser().getUid()).child("groups")
-                        .child(String.valueOf(group.id)).setValue(true)
-                        .addOnCompleteListener(new DatabaseUserAddGroupListener(group));
-            }
-        });
+        mAdapter = new GroupJoinAdapter(mGroups, mGroupItemClickListener);
 
         // Configure our RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -110,10 +101,27 @@ public class JoinActivity extends BaseActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.setAdapter(mAdapter);
 
+        // Display progress dialog
+        showProgressDialog(R.string.dialog_progress_loading_groups);
+
         // Attempt to read groups from the database
         mDatabase.getReference()
                 .child("groups")
-                .addListenerForSingleValueEvent(new DatabaseReadGroupsListener());
+                .addListenerForSingleValueEvent(mDatabaseReadGroupsListener);
+    }
+
+    private class GroupItemClickListener implements OnRecyclerClickListener {
+        @Override
+        public void onClick(int position) {
+            // Save selected group
+            DatabaseGroup group = mGroups.get(position);
+
+            // Add the group to the current user
+            mDatabase.getReference()
+                    .child("users").child(mAuth.getCurrentUser().getUid()).child("groups")
+                    .child(String.valueOf(group.id)).setValue(true)
+                    .addOnCompleteListener(new DatabaseUserAddGroupListener(group));
+        }
     }
 
     private class DatabaseReadGroupsListener implements ValueEventListener {
@@ -134,7 +142,7 @@ public class JoinActivity extends BaseActivity {
         @Override
         public void onCancelled(DatabaseError databaseError) {
             // Log the error and notify the user
-            Log.e(TAG, "SingleValueEvent", databaseError.toException());
+            Log.e(TAG, "DatabaseReadGroupsListener", databaseError.toException());
             FirebaseCrash.report(databaseError.toException());
             showSnackbar(R.string.error_msg_groups_load);
 

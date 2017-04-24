@@ -54,9 +54,7 @@ import butterknife.OnClick;
 public class SettingsActivity extends BaseActivity {
     public static final String TAG = SettingsActivity.class.getSimpleName();
     public static final String PREFS_NAME = "HelloWorld";
-
-    // Request codes
-    private static final int
+    public static final int
             RC_OPEN_FILE    = 420;
 
     // Activity elements

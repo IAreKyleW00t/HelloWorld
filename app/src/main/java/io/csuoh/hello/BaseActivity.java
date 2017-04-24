@@ -16,6 +16,7 @@
  */
 package io.csuoh.hello;
 
+import android.app.NotificationManager;
 import android.os.Bundle;
 import android.support.annotation.MainThread;
 import android.support.annotation.StringRes;
@@ -29,11 +30,30 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 
 public class BaseActivity extends AppCompatActivity {
+    public static final int NEW_MESSAGE_NOTIFICATION_ID = 470;
+    protected boolean inForeground;
     private MaterialDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        inForeground = true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        inForeground = true;
+
+        // Automatically clear any app-related notifications
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(NEW_MESSAGE_NOTIFICATION_ID);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        inForeground = false;
     }
 
     @MainThread

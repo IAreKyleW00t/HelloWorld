@@ -18,7 +18,7 @@
 <resources>
     <!-- Application related values -->
     <string name="app_name">HelloWorld</string>
-    <string name="app_version">2017.419.0</string>
+    <string name="app_version">2017.424.0</string>
 
     <!-- Basic values -->
     <string name="please_wait">Please wait&#8230;</string>
@@ -112,6 +112,8 @@
     <string name="error_msg_groups_load">Failed to load available groups. Please try again</string>
     <string name="error_msg_group_join">Failed to join group. Please try again</string>
     <string name="error_msg_group_leave">Failed to leave group. Please try again</string>
+    <string name="error_msg_send">Failed to send message. Please try again</string>
+    <string name="error_msg_messages">Failed to load messages. Please try again</string>
 
     <!-- Errors relating to user input -->
     <string name="error_input_name">Please enter your display name</string>
@@ -120,4 +122,6 @@
     <string name="error_input_password_current">Please enter your current password</string>
     <string name="error_input_password_new">Your new password must be at least 6 characters long</string>
     <string name="error_input_password_confirm">Passwords do not match</string>
+    <string name="error_input_message_empty">Please enter a message</string>
+    <string name="error_input_message_length">Message cannot be longer than 512 characters</string>
 </resources>

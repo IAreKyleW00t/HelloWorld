@@ -23,19 +23,20 @@ import org.parceler.Parcel;
 @Parcel
 @IgnoreExtraProperties
 public class DatabaseMessage {
-    public int id = -1;
-    public String user = null, photo = null, message = null;
+    public String id = null, user = null, photo = null, message = null;
+    public int group = - 1;
     public long timestamp = -1L;
 
     public DatabaseMessage() {
         // Default constructor required for calls to DataSnapshot.getValue(DatabaseMessage.class)
     }
 
-    public DatabaseMessage(int id, String user, String photo, String message, long timestamp) {
+    public DatabaseMessage(String id, String user, String photo, String message, int group, long timestamp) {
         this.id = id;
         this.user = user;
         this.photo = photo;
         this.message = message;
+        this.group = group;
         this.timestamp = timestamp;
     }
 }

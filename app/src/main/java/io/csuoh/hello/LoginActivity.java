@@ -55,9 +55,7 @@ import io.csuoh.hello.models.DatabaseUser;
 
 public class LoginActivity extends BaseActivity {
     public static final String TAG = LoginActivity.class.getSimpleName();
-
-    // Request codes
-    private static final int
+    public static final int
             RC_GOOGLE_SIGNIN    = 42,
             RC_REGISTER         = 69;
 
@@ -102,6 +100,12 @@ public class LoginActivity extends BaseActivity {
             return;
         }
 
+        // Initialize all of our Listeners
+        mUserLoginResultListener = new UserLoginResultListener();
+        mDatabaseReadUserResultListener = new DatabaseReadUserResultListener();
+        mDatabaseUpdateResultListener = new DatabaseUpdateResultListener();
+        mEmailVerificationResultListener = new EmailVerificationResultListener();
+
         // Configure the GoogleSignInOptions to request the users basic profile information and their email address
         GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.google_client_id))
@@ -113,12 +117,6 @@ public class LoginActivity extends BaseActivity {
                 .enableAutoManage(this, new GoogleConnectionFailedListener())
                 .addApi(Auth.GOOGLE_SIGN_IN_API, options)
                 .build();
-
-        // Initialize all of our Listeners
-        mUserLoginResultListener = new UserLoginResultListener();
-        mDatabaseReadUserResultListener = new DatabaseReadUserResultListener();
-        mDatabaseUpdateResultListener = new DatabaseUpdateResultListener();
-        mEmailVerificationResultListener = new EmailVerificationResultListener();
     }
 
     @Override

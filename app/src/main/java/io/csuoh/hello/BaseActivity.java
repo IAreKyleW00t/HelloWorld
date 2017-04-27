@@ -1,4 +1,8 @@
-/*
+/**
+ * Group 18
+ * Kyle Colantonio, 2595744
+ * 4/28/2017
+ *
  * Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,9 +20,12 @@
  */
 package io.csuoh.hello;
 
+import android.app.ActivityManager;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
@@ -29,31 +36,36 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 
+import java.util.List;
+
 public class BaseActivity extends AppCompatActivity {
     public static final int NEW_MESSAGE_NOTIFICATION_ID = 470;
-    protected boolean inForeground;
     private MaterialDialog mProgressDialog;
+    private NotificationManager notificationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        inForeground = true;
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        inForeground = true;
 
         // Automatically clear any app-related notifications
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(NEW_MESSAGE_NOTIFICATION_ID);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        inForeground = false;
+    @MainThread
+    public final boolean isAppInForeground(@NonNull Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> services = activityManager.getRunningTasks(Integer.MAX_VALUE);
+        if (services.get(0).topActivity.getPackageName().equalsIgnoreCase(context.getPackageName())) {
+            return true;
+        }
+
+        return false;
     }
 
     @MainThread

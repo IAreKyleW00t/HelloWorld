@@ -1,4 +1,8 @@
-/*
+/**
+ * Group 18
+ * Kyle Colantonio, 2595744
+ * 4/28/2017
+ *
  * Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,7 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
+import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -55,22 +59,22 @@ public class MessageAdapter extends RecyclerAdapter<DatabaseMessage, MessageAdap
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         // Timestamp format
-        SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm aa", Locale.US);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, hh:mm aa", Locale.US);
 
         // Save current item
         DatabaseMessage message = mList.get(position);
 
         // Set values in View
-        Glide.with(mContext)
+        Picasso.with(mContext)
                 .load(message.photo)
                 .into(holder.mMessageAvatar);
         holder.mMessage.setText(message.message);
-        holder.mTimestamp.setText(dateFormat.format(new Date(message.timestamp)));
+        holder.mInfo.setText(message.user + " - " + dateFormat.format(new Date(message.timestamp)));
     }
 
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final CircleImageView mMessageAvatar;
-        final TextView mMessage, mTimestamp;
+        final TextView mMessage, mInfo;
 
         ViewHolder(View view) {
             super(view);
@@ -81,7 +85,7 @@ public class MessageAdapter extends RecyclerAdapter<DatabaseMessage, MessageAdap
             // Parse Layout elements from View
             mMessageAvatar = (CircleImageView) view.findViewById(R.id.image_message_avatar);
             mMessage = (TextView) view.findViewById(R.id.text_message);
-            mTimestamp = (TextView) view.findViewById(R.id.text_message_timestamp);
+            mInfo = (TextView) view.findViewById(R.id.text_message_info);
         }
 
         @Override

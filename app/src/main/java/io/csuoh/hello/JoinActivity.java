@@ -1,4 +1,8 @@
-/*
+/**
+ * Group 18
+ * Kyle Colantonio, 2595744
+ * 4/28/2017
+ *
  * Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -190,6 +194,8 @@ public class JoinActivity extends BaseActivity {
         public void onComplete(@NonNull Task<Void> task) {
             // Check if the user was added to the group successfully
             if (task.isSuccessful()) {
+                // Make sure new user is added to the group
+                mGroup.users.put(mAuth.getCurrentUser().getUid(), true);
 
                 // Add the new Group into the Bundle of extra data
                 Bundle extras = new Bundle();

@@ -1,3 +1,25 @@
+<!--
+
+    Group 18
+    Kyle Colantonio, 2595744
+    4/28/2017
+
+    Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
 <vector android:height="512dp" android:viewportHeight="30.0"
     android:viewportWidth="30.0" android:width="512dp" xmlns:android="http://schemas.android.com/apk/res/android">
     <path android:fillColor="#FFCC4D" android:pathData="M28.375,14.25c0,7.375 -6,13.375 -13.375,13.375c-7.375,0 -13.375,-6 -13.375,-13.375c0,-7.375 6,-13.375 13.375,-13.375C22.375,0.75 28.375,6.75 28.375,14.25"/>

@@ -1,4 +1,8 @@
-/*
+/**
+ * Group 18
+ * Kyle Colantonio, 2595744
+ * 4/28/2017
+ *
  * Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify

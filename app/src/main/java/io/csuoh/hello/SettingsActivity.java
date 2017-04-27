@@ -1,4 +1,8 @@
-/*
+/**
+ * Group 18
+ * Kyle Colantonio, 2595744
+ * 4/28/2017
+ *
  * Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +36,6 @@ import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -46,6 +49,7 @@ import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -271,11 +275,9 @@ public class SettingsActivity extends BaseActivity {
             }
 
             // Display the current users profile picture
-            Glide.with(SettingsActivity.this)
+            Picasso.with(SettingsActivity.this)
                     .load(user.getPhotoUrl())
                     .placeholder(R.drawable.default_user_picture)
-                    .centerCrop()
-                    .dontAnimate()
                     .into(mProfilePicture);
 
             // Display the current users remaining information

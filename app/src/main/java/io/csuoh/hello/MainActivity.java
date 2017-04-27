@@ -1,4 +1,8 @@
-/*
+/**
+ * Group 18
+ * Kyle Colantonio, 2595744
+ * 4/28/2017
+ *
  * Copyright (C) 2017  Kyle Colantonio <kyle10468@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +26,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -137,9 +143,6 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_search: // Search
-                return true;
-
             case R.id.menu_settings: // Settings
                 startActivity(SettingsActivity.createIntent(MainActivity.this));
                 return true;
@@ -251,7 +254,7 @@ public class MainActivity extends BaseActivity {
 
                 // Send notification if a group is updated, aka: new message.
                 SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-                if (settings.getBoolean("notifications", true) && !inForeground) {
+                if (!isAppInForeground(MainActivity.this)) {
                     // Add the Group into the Bundle data
                     Bundle extras = new Bundle();
                     extras.putParcelable("group", Parcels.wrap(DatabaseGroup.class, group));
@@ -263,12 +266,18 @@ public class MainActivity extends BaseActivity {
                     // Create pending Intent
                     PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, (int) System.currentTimeMillis(), intent, 0);
 
+                    Uri notificationSound = null;
+                    if (settings.getBoolean("notifications", true)) {
+                        notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    }
+
                     // Create notification
                     Notification notification = new Notification.Builder(MainActivity.this)
                             .setContentTitle("New Message")
                             .setContentText(group.last_message)
                             .setSmallIcon(R.drawable.ic_smile)
                             .setContentIntent(pendingIntent)
+                            .setSound(notificationSound)
                             .setAutoCancel(true)
                             .build();
 

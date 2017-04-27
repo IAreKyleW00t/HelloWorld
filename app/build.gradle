@@ -1,3 +1,7 @@
+plugins {
+    // Automatically add license headers
+    id 'com.github.hierynomus.license' version '0.13.1'
+}
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.firebase.firebase-crash'
 
@@ -46,9 +50,8 @@ dependencies {
     // Circular ImageViews
     compile 'de.hdodenhof:circleimageview:2.1.0'
     
-    // Glide
-    compile 'com.github.bumptech.glide:glide:3.7.0'
-    compile 'com.android.support:support-v4:25.3.0'
+    // Picasso
+    compile 'com.squareup.picasso:picasso:2.5.2'
     
     // Firebase
     compile 'com.google.firebase:firebase-auth:10.2.1'
@@ -60,6 +63,12 @@ dependencies {
     compile 'com.google.android.gms:play-services-auth:10.2.1'
     compile 'com.android.support:design:25.3.0'
 
+}
+
+// Apply a license header to every source file automatically
+license {
+    header = file('src/main/res/license/HEADER.txt')
+    strictCheck true
 }
 
 // Google Services

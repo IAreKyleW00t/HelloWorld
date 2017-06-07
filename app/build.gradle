@@ -40,6 +40,9 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.5.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
 
+    // Picasso
+    compile 'com.squareup.picasso:picasso:2.5.2'
+
     // Parceler
     compile 'org.parceler:parceler-api:1.1.6'
     annotationProcessor 'org.parceler:parceler:1.1.6'
@@ -49,9 +52,6 @@ dependencies {
 
     // Circular ImageViews
     compile 'de.hdodenhof:circleimageview:2.1.0'
-    
-    // Picasso
-    compile 'com.squareup.picasso:picasso:2.5.2'
     
     // Firebase
     compile 'com.google.firebase:firebase-auth:10.2.1'
@@ -67,7 +67,7 @@ dependencies {
 
 // Apply a license header to every source file automatically
 license {
-    header = file('src/main/res/license/HEADER.txt')
+    header = file('HEADER.txt')
     strictCheck true
 }
 
